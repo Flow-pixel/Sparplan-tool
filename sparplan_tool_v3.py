@@ -1,9 +1,8 @@
-
 import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="Sparplan Tool", layout="wide")
-st.title("Sparplan-Rotationsrechner (V2)")
+st.title("Sparplan-Rotationsrechner (V1)")
 
 # Eingaben
 zielsumme = st.number_input("Zielkapital (€)", value=12400)
@@ -119,7 +118,7 @@ if 'auto_korrektur' not in st.session_state:
     st.session_state.auto_korrektur = False
 
 if favoriten and favoriten_rate and rotation_rate:
-    anzahl_favs = len(favoriten))
+    anzahl_favs = len(favoriten)
     anzahl_rots = len(st.text_area("Weitere Aktien (eine pro Zeile)").splitlines())
     gesamt_rate = (favoriten_rate * anzahl_favs * favoriten_monate + 
                    rotation_rate * anzahl_rots * rotation_monate) / monate
