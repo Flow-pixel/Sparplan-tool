@@ -119,7 +119,7 @@ if 'auto_korrektur' not in st.session_state:
     st.session_state.auto_korrektur = False
 
 if favoriten and favoriten_rate and rotation_rate:
-    anzahl_favs = len(favoriten.splitlines())
+    anzahl_favs = len(favoriten))
     anzahl_rots = len(st.text_area("Weitere Aktien (eine pro Zeile)").splitlines())
     gesamt_rate = (favoriten_rate * anzahl_favs * favoriten_monate + 
                    rotation_rate * anzahl_rots * rotation_monate) / monate
