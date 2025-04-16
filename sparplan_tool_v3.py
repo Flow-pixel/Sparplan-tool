@@ -119,9 +119,11 @@ if 'auto_korrektur' not in st.session_state:
 
 if favoriten and favoriten_rate and rotation_rate:
     anzahl_favs = len(favoriten)
-anzahl_rots = len(rotation_aktien)
-        gesamt_rate = (favoriten_rate * anzahl_favs * favoriten_monate +
-                       rotation_rate * anzahl_rots * rotation_monate) / monate
+    anzahl_rots = len(rotation_aktien)
+    gesamt_rate = (
+    favoriten_rate * anzahl_favs * favoriten_monate +
+    rotation_rate * anzahl_rots * rotation_monate
+) / monate
 
     if gesamt_rate > monatlicher_betrag:
         st.warning(f"⚠️ Deine geplanten Raten ergeben aktuell {round(gesamt_rate, 2)} € / Monat, "
