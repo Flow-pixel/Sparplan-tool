@@ -120,11 +120,11 @@ if st.button("Sparplan berechnen"):
     
     for aktie in rot_roadmap[monat]:
         st.markdown(f"{aktie}: {rot_rate:.2f} €")
-
+    
     st.markdown(f"**ETFs**")
     for etf in etf_list:
         if etf in etf_raten:
-            st.markdown(f"**{etf}**: {etf_raten[etf]:.2f} €")
+            st.markdown(f"**{etf}**: {etf_raten.get(etf, 0):.2f} €")
         else:
             st.warning(f"Kein Eintrag für ETF '{etf}' gefunden.")
         st.warning(f"Kein Eintrag für ETF '{etf}' gefunden.")
