@@ -65,6 +65,23 @@ if st.button("Sparplan berechnen"):
     fav_list = [f.strip() for f in favoriten.splitlines() if f.strip()]
     rot_list = [r.strip() for r in rotation_aktien.splitlines() if r.strip()]
     etf_list = [e.strip() for e in etfs.splitlines() if e.strip()]
+    
+# ETF-Verteilung: 50 % auf MSCI World & S&P 500, Rest gleichmäßig auf andere
+msci_etfs = ["MSCI World", "S&P 500"]
+priorisierte_etfs = [etf for etf in etf_list if etf in msci_etfs]
+sonstige_etfs = [etf for etf in etf_list if etf not in msci_etfs]
+etf_raten = {}
+if etf_list:
+    if priorisierte_etfs:
+        priorisiertes_budget = etf_budget * 0.5
+        rate_priorisiert = priorisiertes_budget / len(priorisierte_etfs)
+        for etf in priorisierte_etfs:
+            etf_raten[etf] = rate_priorisiert
+    if sonstige_etfs:
+        sonstiges_budget = etf_budget * 0.5
+        rate_sonstig = sonstiges_budget / len(sonstige_etfs)
+        for etf in sonstige_etfs:
+            etf_raten[etf] = rate_sonstig
 
     rot_per_month = anzahl_aktien_pro_monat - 2
 
@@ -88,23 +105,6 @@ if st.button("Sparplan berechnen"):
 
     aktien_budget = monatlicher_betrag * aktienanteil / 100
     etf_budget = monatlicher_betrag * etf_anteil / 100
-
-# ETF-Verteilung: 50 % auf MSCI World & S&P 500, Rest gleichmäßig auf andere
-msci_etfs = ["MSCI World", "S&P 500"]
-priorisierte_etfs = [etf for etf in etf_list if etf in msci_etfs]
-sonstige_etfs = [etf for etf in etf_list if etf not in msci_etfs]
-etf_raten = {}
-if etf_list:
-    if priorisierte_etfs:
-        priorisiertes_budget = etf_budget * 0.5
-        rate_priorisiert = priorisiertes_budget / len(priorisierte_etfs)
-        for etf in priorisierte_etfs:
-            etf_raten[etf] = rate_priorisiert
-    if sonstige_etfs:
-        sonstiges_budget = etf_budget * 0.5
-        rate_sonstig = sonstiges_budget / len(sonstige_etfs)
-        for etf in sonstige_etfs:
-            etf_raten[etf] = rate_sonstig
 
     fav_rate = aktien_budget * 0.5 / 2
     rot_rate = aktien_budget * 0.5 / rot_per_month if rot_per_month else 0
