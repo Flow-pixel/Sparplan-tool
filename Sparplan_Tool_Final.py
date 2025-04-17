@@ -19,7 +19,7 @@ st.markdown(f"### Monatlicher Sparbetrag: {monatlicher_betrag:.2f} €")
 st.markdown(f"**ETFs erhalten {etf_anteil} %, Aktien erhalten {aktienanteil} %**")
 
 anzahl_aktien_pro_monat = st.number_input("Wie viele Aktien pro Monat besparen?", min_value=3, max_value=30, value=5)
-st.caption("Davon sind automatisch 2 Favoriten enthalten, der Rest wird aus den weiteren Aktien rotierend ergänzt.")
+st.caption("Dabei ist automatisch 1 Favorit enthalten, der Rest wird aus den weiteren Aktien rotierend ergänzt. Favoriten werden mit einer höheren Gewichtung eingeplant.")
 
 default_favoriten = """Palantir Technologies
 Coinbase
