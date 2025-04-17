@@ -119,8 +119,8 @@ if etf_list:
         for aktie in rot_roadmap[monat]:
             st.markdown(f"{aktie}: {rot_rate:.2f} €")
             st.markdown(f"**ETFs**")
-        for etf in etf_list:
-        if etf in etf_raten:
-            st.markdown(f"**{etf}**: {etf_raten[etf]:.2f} €")
-        else:
-            st.warning(f"Kein Eintrag für ETF '{etf}' gefunden.")
+for etf in etf_list:
+    if etf in etf_raten:
+        st.markdown(f"**{etf}**: {etf_raten[etf]:.2f} €")
+    else:
+        st.warning(f"Kein Eintrag für ETF '{etf}' gefunden.")
