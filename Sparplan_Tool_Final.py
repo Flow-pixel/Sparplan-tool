@@ -103,15 +103,13 @@ if st.button("Sparplan berechnen"):
             for etf in sonstige_etfs:
                 etf_raten[etf] = rate_sonstig
 
-    rot_per_month = anzahl_aktien_pro_monat - 2 if len(fav_list) > 1 else anzahl_aktien_pro_monat
+    rot_per_month = anzahl_aktien_pro_monat - 1 if len(fav_list) >= 1 else anzahl_aktien_pro_monat
     fav_roadmap, rot_roadmap = [], []
 
     for i in range(monate):
         if len(fav_list) > 1:
-            start_fav = (i * 2) % len(fav_list)
-            favs = fav_list[start_fav:start_fav + 2]
-            if len(favs) < 2:
-                favs += fav_list[0:2 - len(favs)]
+            start_fav = i % len(fav_list)
+            favs = [fav_list[start_fav]]
         else:
             favs = fav_list * 2
         fav_roadmap.append(favs)
@@ -122,8 +120,8 @@ if st.button("Sparplan berechnen"):
             rot += rot_list[0:rot_per_month - len(rot)]
         rot_roadmap.append(rot)
 
-    fav_rate = aktien_budget * 0.67 / 2 if len(fav_list) > 1 else aktien_budget * 0.67
-    rot_rate = aktien_budget * 0.33 / rot_per_month if rot_per_month else 0
+    fav_rate = aktien_budget * 0.4
+    rot_rate = aktien_budget * 0.6 / rot_per_month if rot_per_month else 0
 
     aktien_sum = {}
     for monat in range(monate):
