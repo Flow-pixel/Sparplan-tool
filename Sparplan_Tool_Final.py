@@ -67,10 +67,10 @@ if st.button("Sparplan berechnen"):
     etf_list = [e.strip() for e in etfs.splitlines() if e.strip()]
     
 # ETF-Verteilung: 50 % auf MSCI World & S&P 500, Rest gleichmäßig auf andere
-msci_etfs = ["MSCI World", "S&P 500"]
-priorisierte_etfs = [etf for etf in etf_list if etf in msci_etfs]
-sonstige_etfs = [etf for etf in etf_list if etf not in msci_etfs]
-etf_raten = {}
+    msci_etfs = ["MSCI World", "S&P 500"]
+    priorisierte_etfs = [etf for etf in etf_list if etf in msci_etfs]
+    sonstige_etfs = [etf for etf in etf_list if etf not in msci_etfs]
+    etf_raten = {}
 if etf_list:
     if priorisierte_etfs:
         priorisiertes_budget = etf_budget * 0.5
