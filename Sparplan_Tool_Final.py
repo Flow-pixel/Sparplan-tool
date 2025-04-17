@@ -69,6 +69,9 @@ if st.button("Sparplan berechnen"):
     rot_list = [r.strip() for r in rotation_aktien.splitlines() if r.strip()]
     etf_list = [e.strip() for e in etfs.splitlines() if e.strip()]
 
+    if len(fav_list) == 1:
+        st.warning("Bitte mindestens 2 Favoriten eintragen, damit das Programm funktioniert – empfohlen sind 5–10 für bessere Ergebnisse.")
+    
     if not fav_list and not etf_list:
         aktienanteil = 100
         etf_anteil = 0
