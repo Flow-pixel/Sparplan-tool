@@ -1,6 +1,7 @@
 
 import streamlit as st
 import math
+import pandas as pd
 
 st.set_page_config(page_title="Dynamischer Sparplan-Rechner", layout="wide")
 st.title("Dynamischer Sparplan-Rechner")
@@ -11,11 +12,6 @@ monate = st.number_input("Dauer (Monate)", value=20)
 aktienanteil = st.slider("Aktienanteil (%)", 0, 100, 60)
 etf_anteil = 100 - aktienanteil
 monatlicher_betrag = zielsumme / monate
-aktien_budget = monatlicher_betrag * aktienanteil / 100
-etf_budget = monatlicher_betrag * etf_anteil / 100
-
-st.markdown(f"### Monatlicher Sparbetrag: {monatlicher_betrag:.2f} €")
-st.markdown(f"**ETFs erhalten {etf_anteil} %, Aktien erhalten {aktienanteil} %**")
 
 anzahl_aktien_pro_monat = st.number_input("Wie viele Aktien pro Monat besparen?", min_value=3, max_value=30, value=5)
 st.caption("Davon sind automatisch 2 Favoriten enthalten, der Rest wird aus den weiteren Aktien rotierend ergänzt.")
@@ -68,52 +64,97 @@ if st.button("Sparplan berechnen"):
     rot_list = [r.strip() for r in rotation_aktien.splitlines() if r.strip()]
     etf_list = [e.strip() for e in etfs.splitlines() if e.strip()]
 
+    # Sonderfall: Keine Favoriten und keine ETFs
+    if not fav_list and not etf_list:
+        aktienanteil = 100
+        etf_anteil = 0
+
+    aktien_budget = monatlicher_betrag * aktienanteil / 100
+    etf_budget = monatlicher_betrag * etf_anteil / 100
+
+    # ETF-Aufteilung
     msci_etfs = ["MSCI World", "S&P 500"]
     priorisierte_etfs = [etf for etf in etf_list if etf in msci_etfs]
     sonstige_etfs = [etf for etf in etf_list if etf not in msci_etfs]
     etf_raten = {}
-    if etf_list:
+
+    if len(etf_list) == 1:
+        etf_raten[etf_list[0]] = etf_budget
+    else:
         if priorisierte_etfs:
             priorisiertes_budget = etf_budget * 0.5
             rate_priorisiert = priorisiertes_budget / len(priorisierte_etfs)
             for etf in priorisierte_etfs:
                 etf_raten[etf] = rate_priorisiert
         if sonstige_etfs:
-            sonstiges_budget = etf_budget * 0.5
+            sonstiges_budget = etf_budget * 0.5 if priorisierte_etfs else etf_budget
             rate_sonstig = sonstiges_budget / len(sonstige_etfs)
             for etf in sonstige_etfs:
                 etf_raten[etf] = rate_sonstig
 
-    rot_per_month = anzahl_aktien_pro_monat - 2
+    # Aktienaufteilung
+    rot_per_month = anzahl_aktien_pro_monat - 2 if len(fav_list) > 1 else anzahl_aktien_pro_monat
+    fav_roadmap, rot_roadmap = [], []
 
-    fav_roadmap = []
     for i in range(monate):
-        start = (i * 2) % len(fav_list)
-        favs = fav_list[start:start + 2]
-        if len(favs) < 2:
-            favs += fav_list[0:2 - len(favs)]
+        # Favoriten-Rotation
+        if len(fav_list) > 1:
+            start_fav = (i * 2) % len(fav_list)
+            favs = fav_list[start_fav:start_fav + 2]
+            if len(favs) < 2:
+                favs += fav_list[0:2 - len(favs)]
+        else:
+            favs = fav_list * 2
         fav_roadmap.append(favs)
 
-    rot_roadmap = []
-    for i in range(monate):
-        start = (i * rot_per_month) % len(rot_list)
-        rot = rot_list[start:start + rot_per_month]
+        # Rotation
+        start_rot = (i * rot_per_month) % len(rot_list)
+        rot = rot_list[start_rot:start_rot + rot_per_month]
         if len(rot) < rot_per_month:
             rot += rot_list[0:rot_per_month - len(rot)]
         rot_roadmap.append(rot)
 
-    fav_rate = aktien_budget * 0.5 / 2
+    # Ratenberechnung
+    fav_rate = aktien_budget * 0.5 / 2 if len(fav_list) > 1 else aktien_budget * 0.5
     rot_rate = aktien_budget * 0.5 / rot_per_month if rot_per_month else 0
 
+    # Gesamtbeträge berechnen
+    aktien_sum = {}
+    for monat in range(monate):
+        for aktie in fav_roadmap[monat]:
+            aktien_sum[aktie] = aktien_sum.get(aktie, 0) + fav_rate
+        for aktie in rot_roadmap[monat]:
+            aktien_sum[aktie] = aktien_sum.get(aktie, 0) + rot_rate
+    etf_sum = {etf: etf_raten.get(etf, 0) * monate for etf in etf_list}
+
+    # Gesamtübersicht
+    all_data = []
+    for aktie, betrag in aktien_sum.items():
+        typ = "Favorit" if aktie in fav_list else "Rotation"
+        all_data.append({"Name": aktie, "Typ": typ, "Gesamtbetrag (€)": round(betrag, 2)})
+    for etf, betrag in etf_sum.items():
+        all_data.append({"Name": etf, "Typ": "ETF", "Gesamtbetrag (€)": round(betrag, 2)})
+
+    df_export = pd.DataFrame(all_data)
+    st.subheader("Gesamtübersicht")
+    st.dataframe(df_export)
+
+    csv = df_export.to_csv(index=False).encode("utf-8")
+    st.download_button("CSV herunterladen", data=csv, file_name="sparplan_gesamtuebersicht.csv", mime="text/csv")
+
+    # Monatsraten
     st.success("Sparplan erfolgreich berechnet!")
     st.subheader("Monatliche Raten:")
-
     for monat in range(monate):
         st.markdown(f"---\n**Monat {monat + 1} – Aktien**")
-        for aktie in fav_roadmap[monat]:
-            st.markdown(f"**{aktie}**: {fav_rate:.2f} €")
+        favs = fav_roadmap[monat]
+        if len(favs) == 2 and favs[0] == favs[1]:
+            st.markdown(f"**{favs[0]}**: {fav_rate*2:.2f} €")
+        else:
+            for aktie in favs:
+                st.markdown(f"**{aktie}**: {fav_rate:.2f} €")
         for aktie in rot_roadmap[monat]:
             st.markdown(f"{aktie}: {rot_rate:.2f} €")
-        st.markdown(f"**ETFs**")
+        st.markdown("**ETFs**")
         for etf in etf_list:
             st.markdown(f"**{etf}**: {etf_raten.get(etf, 0):.2f} €")
