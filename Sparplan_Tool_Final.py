@@ -88,12 +88,11 @@ if st.button("Sparplan berechnen"):
 
     aktien_budget = monatlicher_betrag * aktienanteil / 100
     etf_budget = monatlicher_betrag * etf_anteil / 100
-   
+
 # ETF-Verteilung: 50 % auf MSCI World & S&P 500, Rest gleichmäßig auf andere
 msci_etfs = ["MSCI World", "S&P 500"]
 priorisierte_etfs = [etf for etf in etf_list if etf in msci_etfs]
 sonstige_etfs = [etf for etf in etf_list if etf not in msci_etfs]
-
 etf_raten = {}
 if etf_list:
     if priorisierte_etfs:
@@ -114,11 +113,12 @@ if etf_list:
     st.subheader("Monatliche Raten:")
 
     for monat in range(monate):
-        st.markdown(f"---\n**Monat {monat + 1} – Aktien**")
+        st.markdown(f"---/n**Monat {monat + 1} – Aktien**")
         for aktie in fav_roadmap[monat]:
             st.markdown(f"**{aktie}**: {fav_rate:.2f} €")
         for aktie in rot_roadmap[monat]:
             st.markdown(f"{aktie}: {rot_rate:.2f} €")
-            st.markdown(f"**ETFs**")
+        st.markdown(f"**ETFs**")
         for etf in etf_list:
             st.markdown(f"**{etf}**: {etf_raten[etf]:.2f} €")
+            st.markdown(f"**{etf}**: {etf_rate:.2f} €")
