@@ -72,9 +72,14 @@ if st.button("Sparplan berechnen"):
     if len(fav_list) == 1:
         st.warning("Bitte mindestens 2 Favoriten eintragen, damit das Programm funktioniert – empfohlen sind 5–10 für bessere Ergebnisse.")
     
-    if not fav_list and not etf_list:
-        aktienanteil = 100
-        etf_anteil = 0
+    # Falls keine ETFs angegeben: alles in Aktien
+if not etf_list:
+    aktienanteil = 100
+    etf_anteil = 0
+
+# Optional: Falls keine Favoriten angegeben UND Rotation existiert
+if not fav_list and rot_list:
+    st.warning("Du hast keine Favoriten angegeben. Alle Aktien werden aus der Rotation bespart.")
 
     aktien_budget = monatlicher_betrag * aktienanteil / 100
     etf_budget = monatlicher_betrag * etf_anteil / 100
