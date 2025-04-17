@@ -132,7 +132,7 @@ if st.button("Sparplan berechnen"):
     )
 
 st.success("Sparplan erfolgreich berechnet!")
-    st.subheader("Monatliche Raten:")
+st.subheader("Monatliche Raten:")
 
     for monat in range(monate):
         st.markdown(f"---\n**Monat {monat + 1} – Aktien**")
