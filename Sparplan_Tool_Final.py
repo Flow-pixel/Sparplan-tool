@@ -9,6 +9,8 @@ st.title("Dynamischer Sparplan-Rechner")
 zielsumme = st.number_input("Zielsumme (€)", value=10000)
 monate = st.number_input("Dauer (Monate)", value=20)
 monatlicher_betrag = zielsumme / monate
+aktien_budget = monatlicher_betrag * aktienanteil / 100
+etf_budget = monatlicher_betrag * etf_anteil / 100
 st.markdown(f"### Monatlicher Sparbetrag: {monatlicher_betrag:.2f} €")
 
 aktienanteil = st.slider("Aktienanteil (%)", 0, 100, 60)
@@ -102,9 +104,6 @@ if st.button("Sparplan berechnen"):
         if len(rot) < rot_per_month:
             rot += rot_list[0:rot_per_month - len(rot)]
         rot_roadmap.append(rot)
-
-    aktien_budget = monatlicher_betrag * aktienanteil / 100
-    etf_budget = monatlicher_betrag * etf_anteil / 100
 
     fav_rate = aktien_budget * 0.5 / 2
     rot_rate = aktien_budget * 0.5 / rot_per_month if rot_per_month else 0
