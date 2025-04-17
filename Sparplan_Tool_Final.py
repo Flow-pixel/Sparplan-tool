@@ -71,17 +71,17 @@ if st.button("Sparplan berechnen"):
     priorisierte_etfs = [etf for etf in etf_list if etf in msci_etfs]
     sonstige_etfs = [etf for etf in etf_list if etf not in msci_etfs]
     etf_raten = {}
-if etf_list:
-    if priorisierte_etfs:
-        priorisiertes_budget = etf_budget * 0.5
-        rate_priorisiert = priorisiertes_budget / len(priorisierte_etfs)
-        for etf in priorisierte_etfs:
-            etf_raten[etf] = rate_priorisiert
-    if sonstige_etfs:
-        sonstiges_budget = etf_budget * 0.5
-        rate_sonstig = sonstiges_budget / len(sonstige_etfs)
-        for etf in sonstige_etfs:
-            etf_raten[etf] = rate_sonstig
+    if etf_list:
+        if priorisierte_etfs:
+           priorisiertes_budget = etf_budget * 0.5
+           rate_priorisiert = priorisiertes_budget / len(priorisierte_etfs)
+           for etf in priorisierte_etfs:
+               etf_raten[etf] = rate_priorisiert
+        if sonstige_etfs:
+           sonstiges_budget = etf_budget * 0.5
+           rate_sonstig = sonstiges_budget / len(sonstige_etfs)
+           for etf in sonstige_etfs:
+               etf_raten[etf] = rate_sonstig
 
     rot_per_month = anzahl_aktien_pro_monat - 2
 
