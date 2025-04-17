@@ -19,7 +19,7 @@ st.markdown(f"### Monatlicher Sparbetrag: {monatlicher_betrag:.2f} €")
 st.markdown(f"**ETFs erhalten {etf_anteil} %, Aktien erhalten {aktienanteil} %**")
 
 anzahl_aktien_pro_monat = st.number_input("Wie viele Aktien pro Monat besparen?", min_value=3, max_value=30, value=5)
-st.caption("Falls keine Favoriten angegeben sind, wird das gesamte Aktienbudget auf rotierende Aktien verteilt.")
+st.caption("Dabei ist automatisch 1 Favorit enthalten, der Rest wird aus den weiteren Aktien rotierend ergänzt. Favoriten werden mit einer höheren Gewichtung eingeplant.")
 
 default_favoriten = """Palantir Technologies
 Coinbase
@@ -69,17 +69,9 @@ if st.button("Sparplan berechnen"):
     rot_list = [r.strip() for r in rotation_aktien.splitlines() if r.strip()]
     etf_list = [e.strip() for e in etfs.splitlines() if e.strip()]
 
-    if len(fav_list) == 1:
-        st.warning("Bitte mindestens 2 Favoriten eintragen, damit das Programm funktioniert – empfohlen sind 5–10 für bessere Ergebnisse.")
-    
-    # Falls keine ETFs angegeben: alles in Aktien
     if not etf_list:
         aktienanteil = 100
         etf_anteil = 0
-
-    # Optional: Falls keine Favoriten angegeben UND Rotation existiert
-    if not fav_list and rot_list:
-        st.warning("Du hast keine Favoriten angegeben. Alle Aktien werden aus der Rotation bespart.")
 
     aktien_budget = monatlicher_betrag * aktienanteil / 100
     etf_budget = monatlicher_betrag * etf_anteil / 100
@@ -107,11 +99,11 @@ if st.button("Sparplan berechnen"):
     fav_roadmap, rot_roadmap = [], []
 
     for i in range(monate):
-        if len(fav_list) > 1:
+        if len(fav_list) >= 1:
             start_fav = i % len(fav_list)
             favs = [fav_list[start_fav]]
         else:
-            favs = fav_list * 2
+            favs = []
         fav_roadmap.append(favs)
 
         start_rot = (i * rot_per_month) % len(rot_list)
@@ -120,8 +112,12 @@ if st.button("Sparplan berechnen"):
             rot += rot_list[0:rot_per_month - len(rot)]
         rot_roadmap.append(rot)
 
-    fav_rate = aktien_budget * 0.4
-    rot_rate = aktien_budget * 0.6 / rot_per_month if rot_per_month else 0
+    if len(fav_list) > 0:
+        fav_rate = aktien_budget * 0.4
+        rot_rate = aktien_budget * 0.6 / rot_per_month if rot_per_month else 0
+    else:
+        fav_rate = 0
+        rot_rate = aktien_budget / rot_per_month if rot_per_month else 0
 
     aktien_sum = {}
     for monat in range(monate):
@@ -149,12 +145,8 @@ if st.button("Sparplan berechnen"):
     st.subheader("Monatliche Raten:")
     for monat in range(monate):
         st.markdown(f"---\n**Monat {monat + 1} – Aktien**")
-        favs = fav_roadmap[monat]
-        if len(favs) == 2 and favs[0] == favs[1]:
-            st.markdown(f"**{favs[0]}**: {fav_rate*2:.2f} €")
-        else:
-            for aktie in favs:
-                st.markdown(f"**{aktie}**: {fav_rate:.2f} €")
+        for aktie in fav_roadmap[monat]:
+            st.markdown(f"**{aktie}**: {fav_rate:.2f} €")
         for aktie in rot_roadmap[monat]:
             st.markdown(f"{aktie}: {rot_rate:.2f} €")
         st.markdown("**ETFs**")
