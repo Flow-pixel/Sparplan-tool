@@ -18,7 +18,8 @@ etf_anteil = 100 - aktienanteil
 st.markdown(f"**ETFs erhalten {etf_anteil} %, Aktien erhalten {aktienanteil} %**")
 
 faktor_favoriten = st.number_input("Faktor Favoriten vs Rotation (z. B. 2 bedeutet 2:1)", value=2)
-anzahl_aktien_pro_monat = st.number_input("Wie viele Aktien pro Monat besparen?", value=5)
+anzahl_aktien_pro_monat = st.number_input("Wie viele Aktien pro Monat besparen?", min_value=1, max_value=30)
+st.caption("Davon sind automatisch 2 Favoriten enthalten, der Rest wird aus den weiteren Aktien rotierend ergänzt.")"Wie viele Aktien pro Monat besparen?", value=5)
 
 # Beispielwerte für die Platzhalter
 default_favoriten = """Palantir Technologies
@@ -97,7 +98,8 @@ if st.button("Sparplan berechnen"):
         st.markdown(f"**{aktie}**: {fav_rate:.2f} €")
 
     for monat in range(monate):
-        st.markdown(f"---**Monat {monat + 1} – Rotierende Aktien**")
+        st.markdown(f"---
+**Monat {monat + 1} – Rotierende Aktien**")
         for aktie in rot_roadmap[monat]:
             st.markdown(f"{aktie}: {rot_rate:.2f} €")
 
