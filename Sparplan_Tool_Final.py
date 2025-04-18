@@ -10,7 +10,7 @@ st.set_page_config(page_title="Dynamischer Sparplan-Rechner", layout="wide")
 # Logo auf der Hauptseite anzeigen
 col1, col2 = st.columns([1, 4])  # Verhältnis: Logo zu Text
 with col1:
-    logo = Image.open("traderise_logo.png")
+    logo = Image.open("Traderise_Logo.PNG")
     st.image(logo, width=60)  # Größe bei Bedarf anpassen
 
 with col2:
