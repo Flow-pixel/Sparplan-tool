@@ -6,6 +6,13 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Dynamischer Sparplan-Rechner", layout="wide")
 st.title("Dynamischer Sparplan-Rechner")
+from PIL import Image
+
+# Sidebar Branding
+with st.sidebar:
+    st.markdown("### Powered by [traderise.net](https://traderise.net)")
+    logo = Image.open("traderise_logo.png")  # Dateiname anpassen falls nötig
+    st.image(logo, use_column_width=True)
 
 # Eingaben
 zielsumme = st.number_input("Zielsumme (€)", value=10000)
