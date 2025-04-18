@@ -5,13 +5,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image
 
-st.set_page_config(page_title="Dynamischer Sparplan-Rechner", layout="wide")
-st.title("Dynamischer Sparplan-Rechner")
-
 # Logo zentriert auf der Hauptseite anzeigen
 logo = Image.open("Traderise_Logo.PNG")
 st.image(logo, width=100)
 st.markdown("<p style='text-align: center; font-size: 16px;'>Powered by <a href='https://traderise.net' target='_blank'>Traderise.net</a></p>", unsafe_allow_html=True)
+
+st.set_page_config(page_title="Dynamischer Sparplan-Rechner", layout="wide")
+st.title("Dynamischer Sparplan-Rechner")
 
 # Eingaben
 zielsumme = st.number_input("Zielsumme (€)", value=10000)
