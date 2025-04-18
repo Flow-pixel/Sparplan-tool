@@ -3,6 +3,7 @@ import streamlit as st
 import math
 import pandas as pd
 import matplotlib.pyplot as plt
+from PIL import Image
 
 st.set_page_config(page_title="Dynamischer Sparplan-Rechner", layout="wide")
 st.title("Dynamischer Sparplan-Rechner")
