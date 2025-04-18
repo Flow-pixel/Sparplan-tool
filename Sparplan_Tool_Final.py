@@ -202,6 +202,29 @@ if st.button("Sparplan berechnen"):
         st.pyplot(fig2)
 
     st.success("Sparplan erfolgreich berechnet!")
+    
+    with st.expander("📈 Zinseszins-Wachstum simulieren"):
+    st.markdown("Hier kannst du sehen, wie sich dein Investment bei verschiedenen Renditen entwickeln könnte.")
+
+    fig, ax = plt.subplots()
+    renditen = {"Underperform (4%)": 0.04, "Default (8%)": 0.08, "Overperform (20%)": 0.20}
+    monate = int(monate)
+    monatlicher_betrag = monatlicher_betrag
+    for label, rate in renditen.items():
+        depotwert = []
+        gesamt = 0
+        for i in range(monate):
+            gesamt = (gesamt + monatlicher_betrag) * (1 + rate / 12)
+            depotwert.append(gesamt)
+        ax.plot(range(1, monate + 1), depotwert, label=label)
+
+    ax.set_title("Investmentwachstum mit Zinseszins")
+    ax.set_xlabel("Monat")
+    ax.set_ylabel("Depotwert (€)")
+    ax.legend()
+    ax.grid(True)
+    st.pyplot(fig)
+    
     st.subheader("Monatliche Raten:")
     for monat in range(monate):
         st.markdown(f"---\n**Monat {monat + 1} – Aktien**")
