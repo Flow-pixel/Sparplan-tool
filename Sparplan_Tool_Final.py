@@ -143,6 +143,26 @@ if st.button("Sparplan berechnen"):
     csv = df_export.to_csv(index=False).encode("utf-8")
     st.download_button("CSV herunterladen", data=csv, file_name="sparplan_gesamtuebersicht.csv", mime="text/csv")
 
+
+    # Visualisierung: Verteilung nach Typ
+    import matplotlib.pyplot as plt
+
+    gruppe = df_export.groupby("Typ")["Gesamtbetrag (€)"].sum()
+
+    fig1, ax1 = plt.subplots()
+    ax1.bar(gruppe.index, gruppe.values)
+    ax1.set_title("Verteilung nach Typ")
+    ax1.set_ylabel("Gesamtbetrag (€)")
+    st.pyplot(fig1)
+
+    # Visualisierung: ETF-Allokation
+    etf_df = df_export[df_export["Typ"] == "ETF"]
+    if not etf_df.empty:
+        fig2, ax2 = plt.subplots()
+        ax2.pie(etf_df["Gesamtbetrag (€)"], labels=etf_df["Name"], autopct='%1.1f%%', startangle=140)
+        ax2.set_title("ETF-Allokation")
+        st.pyplot(fig2)
+
     st.success("Sparplan erfolgreich berechnet!")
     st.subheader("Monatliche Raten:")
     for monat in range(monate):
