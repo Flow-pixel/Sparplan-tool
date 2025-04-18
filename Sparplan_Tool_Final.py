@@ -64,6 +64,7 @@ favoriten = st.text_area("Favoritenaktien (eine pro Zeile)", value=default_favor
 st.caption("Falls keine Favoriten angegeben sind, wird das gesamte Aktienbudget auf rotierende Aktien verteilt.")
 rotation_aktien = st.text_area("Weitere Aktien (eine pro Zeile)", value=default_aktien)
 etfs = st.text_area("ETFs (eine pro Zeile)", value=default_etfs)
+st.caption("Falls keine ETFs angegeben sind, wird das gesamte Kapital auf Aktien verteilt.")
 
 if st.button("Sparplan berechnen"):
     fav_list = [f.strip() for f in favoriten.splitlines() if f.strip()]
