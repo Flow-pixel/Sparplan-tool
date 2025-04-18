@@ -11,7 +11,7 @@ from PIL import Image
 # Sidebar Branding
 with st.sidebar:
     st.markdown("### Powered by [traderise.net](https://traderise.net)")
-    logo = Image.open("traderise_logo.png")  # Dateiname anpassen falls nötig
+    logo = Image.open("Traderise_Logo.PNG")  # Dateiname anpassen falls nötig
     st.image(logo, use_column_width=True)
 
 # Eingaben
