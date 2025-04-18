@@ -140,6 +140,25 @@ if st.button("Sparplan berechnen"):
     st.subheader("Gesamtübersicht")
     st.dataframe(df_export)
 
+    # Visualisierung mit Matplotlib – Balkendiagramm nach Typ
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(figsize=(10, 6))
+    farben = {"Favorit": "tab:blue", "Rotation": "tab:orange", "ETF": "tab:green"}
+    farben_liste = [farben.get(typ, "gray") for typ in df_export["Typ"]]
+
+    df_export_sorted = df_export.sort_values(by="Gesamtbetrag (€)", ascending=False)
+
+    ax.barh(
+        df_export_sorted["Name"],
+        df_export_sorted["Gesamtbetrag (€)"],
+        color=farben_liste
+    )
+    ax.set_xlabel("Gesamtbetrag (€)")
+    ax.set_title("Verteilung nach Sparplan")
+    ax.invert_yaxis()
+    st.pyplot(fig)
+
+
     csv = df_export.to_csv(index=False).encode("utf-8")
     st.download_button("CSV herunterladen", data=csv, file_name="sparplan_gesamtuebersicht.csv", mime="text/csv")
 
