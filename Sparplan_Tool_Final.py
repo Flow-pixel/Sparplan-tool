@@ -61,6 +61,7 @@ Cybersecurity/AI (Thematisch)
 EuroStoxx 600"""
 
 favoriten = st.text_area("Favoritenaktien (eine pro Zeile)", value=default_favoriten)
+st.caption("Falls keine Favoriten angegeben sind, wird das gesamte Aktienbudget auf rotierende Aktien verteilt.")
 rotation_aktien = st.text_area("Weitere Aktien (eine pro Zeile)", value=default_aktien)
 etfs = st.text_area("ETFs (eine pro Zeile)", value=default_etfs)
 
