@@ -10,13 +10,13 @@ st.title("Dynamischer Sparplan-Rechner")
 zielsumme = st.number_input("Zielsumme (€)", value=10000)
 monate = st.number_input("Dauer (Monate)", value=20)
 aktienanteil = st.slider("Aktienanteil (%)", 0, 100, 60)
+st.markdown(f"**ETFs erhalten {etf_anteil} %, Aktien erhalten {aktienanteil} %**")
 etf_anteil = 100 - aktienanteil
 monatlicher_betrag = zielsumme / monate
 aktien_budget = monatlicher_betrag * aktienanteil / 100
 etf_budget = monatlicher_betrag * etf_anteil / 100
 
 st.markdown(f"### Monatlicher Sparbetrag: {monatlicher_betrag:.2f} €")
-st.markdown(f"**ETFs erhalten {etf_anteil} %, Aktien erhalten {aktienanteil} %**")
 
 anzahl_aktien_pro_monat = st.number_input("Wie viele Aktien pro Monat besparen?", min_value=3, max_value=30, value=5)
 st.caption("Dabei ist automatisch 1 Favorit enthalten, der Rest wird aus den weiteren Aktien rotierend ergänzt. Favoriten werden mit einer höheren Gewichtung eingeplant.")
