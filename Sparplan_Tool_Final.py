@@ -12,14 +12,6 @@ logo = Image.open("Traderise_Logo.PNG")
 st.image(logo, use_container_width=True)
 st.markdown("<p style='text-align: center; font-size: 16px;'>Powered by <a href='https://traderise.net' target='_blank'>Traderise.net</a></p>", unsafe_allow_html=True)
 
-from PIL import Image
-
-# Sidebar Branding
-with st.sidebar:
-    st.markdown("### Powered by [traderise.net](https://traderise.net)")
-    logo = Image.open("traderise_logo.png")  # Dateiname anpassen falls nötig
-    st.image(logo, use_column_width=True)
-
 # Eingaben
 zielsumme = st.number_input("Zielsumme (€)", value=10000)
 monate = st.number_input("Dauer (Monate)", value=20)
