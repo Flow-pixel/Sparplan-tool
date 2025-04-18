@@ -7,10 +7,19 @@ from PIL import Image
 
 st.set_page_config(page_title="Dynamischer Sparplan-Rechner", layout="wide")
 
-# Logo zentriert auf der Hauptseite anzeigen
-logo = Image.open("Traderise_Logo.PNG")
-st.image(logo, width=100)
-st.markdown("<p style='text-align: center; font-size: 16px;'>Powered by <a href='https://traderise.net' target='_blank'>Traderise.net</a></p>", unsafe_allow_html=True)
+# Logo auf der Hauptseite anzeigen
+col1, col2 = st.columns([1, 4])  # Verhältnis: Logo zu Text
+with col1:
+    logo = Image.open("traderise_logo.png")
+    st.image(logo, width=60)  # Größe bei Bedarf anpassen
+
+with col2:
+    st.markdown(
+        '<div style="padding-top: 20px;">'
+        'Powered by <a href="https://traderise.net" target="_blank">Traderise.net</a>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
 st.title("Dynamischer Sparplan-Rechner")
 
