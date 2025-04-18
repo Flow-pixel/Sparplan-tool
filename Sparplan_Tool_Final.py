@@ -2,6 +2,7 @@
 import streamlit as st
 import math
 import pandas as pd
+import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Dynamischer Sparplan-Rechner", layout="wide")
 st.title("Dynamischer Sparplan-Rechner")
@@ -141,7 +142,6 @@ if st.button("Sparplan berechnen"):
     st.dataframe(df_export)
 
     # Visualisierung mit Matplotlib – Balkendiagramm nach Typ
-    import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(10, 6))
     farben = {"Favorit": "tab:blue", "Rotation": "tab:orange", "ETF": "tab:green"}
     farben_liste = [farben.get(typ, "gray") for typ in df_export["Typ"]]
