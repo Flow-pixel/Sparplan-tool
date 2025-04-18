@@ -3,20 +3,22 @@ import streamlit as st
 import math
 import pandas as pd
 import matplotlib.pyplot as plt
-from PIL import Image
 
 st.set_page_config(page_title="Dynamischer Sparplan-Rechner", layout="wide")
 
-# Logo auf der Hauptseite anzeigen
-col1, col2 = st.columns([1, 4])  # Verhältnis: Logo zu Text
+from PIL import Image
+
+# Logo und Branding nebeneinander
+col1, col2 = st.columns([1, 6])  # Verhältnis Logo : Text
+
 with col1:
     logo = Image.open("Traderise_Logo.PNG")
-    st.image(logo, width=60)  # Größe bei Bedarf anpassen
+    st.image(logo, width=60)
 
 with col2:
     st.markdown(
-        '<div style="padding-top: 20px;">'
-        'Powered by <a href="https://traderise.net" target="_blank">Traderise.net</a>'
+        '<div style="display: flex; align-items: center; height: 100%;">'
+        '<span style="font-size: 14px;">Powered by <a href="https://traderise.net" target="_blank" style="text-decoration: none; color: #1E90FF;">Traderise.net</a></span>'
         '</div>',
         unsafe_allow_html=True
     )
