@@ -49,6 +49,7 @@ Alphabet
 CrowdStrike
 ASML
 Vertiv
+TSMC
 MercadoLibre"""
 
 default_aktien = """NVIDIA
