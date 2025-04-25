@@ -29,8 +29,8 @@ st.markdown(branding_html, unsafe_allow_html=True)
 st.title("Dynamischer Sparplan-Rechner")
 
 # Eingaben
-zielsumme = st.number_input("Zielsumme (€)", value=10000)
-monate = st.number_input("Dauer (Monate)", value=20)
+zielsumme = st.number_input("Zielsumme (€)", value=12000)
+monate = st.number_input("Dauer (Monate)", value=24)
 aktienanteil = st.slider("Aktienanteil (%)", 0, 100, 60)
 etf_anteil = 100 - aktienanteil
 monatlicher_betrag = zielsumme / monate
