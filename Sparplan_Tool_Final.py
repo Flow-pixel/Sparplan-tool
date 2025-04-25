@@ -47,34 +47,43 @@ default_favoriten = """Palantir Technologies
 Coinbase
 Alphabet
 CrowdStrike
+Microsoft
+NVIDIA
 ASML
 Vertiv
 TSMC
 MercadoLibre"""
 
-default_aktien = """NVIDIA
-Rheinmetall
+default_aktien = """Rheinmetall
 Tesla
 Adyen
 CRISPR Therapeutics
 Block
-MicroStrategy
+The Trade Desk
 Procter & Gamble
 Amazon
 Apple
+Strategy (MicroStrat.)
 Meta
-Microsoft
 Datadog
 ServiceNow
-UiPath
-Enphase
-Plug Power
-Sea Limited
-Alnylam
+Tencent Holdings
+Axon Enterprise
+Siemens Energy
+Intuitive Surgical
 Eli Lilly
 Johnson & Johnson
 LVMH
-Snowflake"""
+Realty Income
+Shopify
+Airbnb
+Fortinet
+Snowflake
+AMD
+Alnylam
+SAP
+Aker Carbon Capture
+"""
 
 default_etfs = """MSCI World
 S&P 500
