@@ -192,6 +192,12 @@ if st.button("Sparplan berechnen"):
     ax.set_xlabel("Gesamtbetrag (€)")
     ax.set_title("Verteilung nach Sparplan")
     ax.invert_yaxis()
+    
+    # Schriftgröße anpassen
+    ax.tick_params(axis='y', labelsize=8)  # Oder 9 oder 10 – je nach Geschmack
+
+    # Engeres Layout gegen Überlappung
+    plt.tight_layout()
     st.pyplot(fig)
 
     # Visualisierung: Verteilung nach Typ
