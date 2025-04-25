@@ -83,6 +83,8 @@ AMD
 Alnylam
 SAP
 Aker Carbon Capture
+Cameco
+Brookfield Asset Management
 """
 
 default_etfs = """MSCI World
