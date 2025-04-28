@@ -191,6 +191,16 @@ if st.button("Sparplan berechnen"):
     ax.set_title("Verteilung nach Sparplan")
     ax.invert_yaxis()
     
+    from matplotlib.patches import Patch
+
+    legende_farben = [
+        Patch(facecolor='tab:green', label='Favorit'),
+        Patch(facecolor='tab:orange', label='Rotation'),
+        Patch(facecolor='tab:blue', label='ETF')
+    ]
+
+    ax.legend(handles=legende_farben, loc='lower right')  # oder 'best', 'upper right' etc.
+    
     # Schriftgröße anpassen
     ax.tick_params(axis='y', labelsize=8)  # Oder 9 oder 10 – je nach Geschmack
 
