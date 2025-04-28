@@ -162,27 +162,12 @@ if st.button("Sparplan berechnen"):
             aktien_sum[aktie] = aktien_sum.get(aktie, 0) + rot_rate
     etf_sum = {etf: etf_raten.get(etf, 0) * monate for etf in etf_list}
 
-    # --- NEUER sauberen Block für all_data aufbauen ---
-
     all_data = []
-
-    # Kombiniere Aktien- und ETF-Summen
-    combined_sum = {**aktien_sum, **etf_sum}
-
-    # Gehe alle Einträge durch und ordne sie sauber zu
-    for name, betrag in combined_sum.items():
-        name_clean = name.strip()  # Entferne mögliche unsichtbare Leerzeichen
-
-        if name_clean in etf_list:
-            typ = "ETF"
-        elif name_clean in fav_list:
-            typ = "Favorit"
-        elif name_clean in rot_list:
-            typ = "Rotation"
-        else:
-            typ = "Rotation"  # Fallback für saubere Struktur
-
-    all_data.append({"Name": name_clean, "Typ": typ, "Gesamtbetrag (€)": round(betrag, 2)})
+    for aktie, betrag in aktien_sum.items():
+        typ = "Favorit" if aktie in fav_list else "Rotation"
+        all_data.append({"Name": aktie, "Typ": typ, "Gesamtbetrag (€)": round(betrag, 2)})
+    for etf, betrag in etf_sum.items():
+        all_data.append({"Name": etf, "Typ": "ETF", "Gesamtbetrag (€)": round(betrag, 2)})
 
     df_export = pd.DataFrame(all_data)
     st.subheader("Gesamtübersicht")
