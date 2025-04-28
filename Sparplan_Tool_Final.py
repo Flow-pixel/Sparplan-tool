@@ -178,7 +178,7 @@ if st.button("Sparplan berechnen"):
 
     # Visualisierung mit Matplotlib – Balkendiagramm nach Typ
     fig, ax = plt.subplots(figsize=(10, 6))
-    farben = {"Favorit": "tab:blue", "Rotation": "tab:orange", "ETF": "tab:green"}
+    farben = {"Favorit": "tab:green", "Rotation": "tab:orange", "ETF": "tab:blue"}
     farben_liste = [farben.get(typ, "gray") for typ in df_export["Typ"]]
 
     df_export_sorted = df_export.sort_values(by="Gesamtbetrag (€)", ascending=False)
