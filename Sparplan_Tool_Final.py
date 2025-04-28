@@ -212,9 +212,10 @@ if st.button("Sparplan berechnen"):
     import matplotlib.pyplot as plt
 
     gruppe = df_export.groupby("Typ")["Gesamtbetrag (€)"].sum()
-
+    farben = {"Favorit": "tab:green", "Rotation": "tab:orange", "ETF": "tab:blue"}
+    farben_liste = [farben.get(typ, "gray") for typ in gruppe.index]
     fig1, ax1 = plt.subplots()
-    ax1.bar(gruppe.index, gruppe.values)
+    ax1.bar(gruppe.index, gruppe.values, color=farben_liste)
     ax1.set_title("Verteilung nach Typ")
     ax1.set_ylabel("Gesamtbetrag (€)")
     st.pyplot(fig1)
