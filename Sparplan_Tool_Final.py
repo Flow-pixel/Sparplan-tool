@@ -177,39 +177,26 @@ if st.button("Sparplan berechnen"):
     st.download_button("CSV herunterladen", data=csv, file_name="sparplan_gesamtuebersicht.csv", mime="text/csv")
 
     # Visualisierung mit Matplotlib – Balkendiagramm nach Typ
-        fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
+    farben = {"Favorit": "tab:green", "Rotation": "tab:orange", "ETF": "tab:blue"}
+    farben_liste = [farben.get(typ, "gray") for typ in df_export["Typ"]]
 
-        # Vorbereitung der Daten
-        all_items = {**aktien_sum, **etf_raten}
-        sorted_items = pd.Series(all_items).sort_values()
-        names = sorted_items.index.tolist()
-        values = sorted_items.values.tolist()
+    df_export_sorted = df_export.sort_values(by="Gesamtbetrag (€)", ascending=False)
 
-        # Explizite Farbzuweisung
-        colors = []
-        for name in names:
-            if name in fav_list:
-                colors.append('green')  # Favoriten
-            elif name in etf_list:
-                colors.append('blue')   # ETFs
-            else:
-                colors.append('orange') # Rotierende Aktien (sonstige)
+    ax.barh(
+        df_export_sorted["Name"],
+        df_export_sorted["Gesamtbetrag (€)"],
+        color=farben_liste
+    )
+    ax.set_xlabel("Gesamtbetrag (€)")
+    ax.set_title("Verteilung nach Sparplan")
+    ax.invert_yaxis()
+    
+    # Schriftgröße anpassen
+    ax.tick_params(axis='y', labelsize=8)  # Oder 9 oder 10 – je nach Geschmack
 
-        # Balkendiagramm zeichnen
-        ax.barh(names, values, color=colors)
-
-        # Legende hinzufügen
-        from matplotlib.patches import Patch
-        legend_elements = [Patch(color='green', label='Favoriten'),
-                           Patch(color='blue', label='ETFs'),
-                           Patch(color='orange', label='Rotierende Aktien')]
-
-        ax.set_xlabel('Gesamtbetrag (€)')
-        ax.set_title('Verteilung nach Sparplan')
-        ax.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=3)
-
-        plt.tight_layout()
-        st.pyplot(fig)
+    # Engeres Layout gegen Überlappung
+    plt.tight_layout()
     st.pyplot(fig)
 
     # Visualisierung: Verteilung nach Typ
