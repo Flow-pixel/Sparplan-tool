@@ -80,7 +80,6 @@ Airbnb
 Fortinet
 Snowflake
 AMD
-Alnylam
 SAP
 Aker Carbon Capture
 Cameco
