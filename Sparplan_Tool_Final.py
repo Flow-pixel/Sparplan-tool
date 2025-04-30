@@ -78,7 +78,7 @@ Realty Income
 Shopify
 Airbnb
 Fortinet
-Snowflake
+Berkshire Hathaway
 AMD
 SAP
 Aker Carbon Capture
