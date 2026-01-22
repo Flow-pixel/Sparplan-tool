@@ -515,7 +515,7 @@ if st.button("Sparplan berechnen"):
             depotwert.append(gesamt)
         ax.plot(range(1, monate_int + 1), depotwert, label=label)
 
-    ax.set_title("Depotwachstum simulieren")
+    ax.set_title("Investmentwachstum mit Zinseszins")
     ax.set_xlabel("Monat")
     ax.set_ylabel("Depotwert (€)")
     ax.legend()
