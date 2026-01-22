@@ -43,55 +43,106 @@ st.markdown(f"### Monatlicher Sparbetrag: {monatlicher_betrag:.2f} €")
 anzahl_aktien_pro_monat = st.number_input("Wie viele Aktien pro Monat besparen?", min_value=3, max_value=30, value=5)
 st.caption("Darin ist automatisch 1 Favorit enthalten, der Rest wird aus den weiteren Aktien rotierend ergänzt. Favoriten werden mit einer höheren Kapital-Gewichtung eingeplant.")
 
-default_favoriten = """Palantir Technologies
+default_favoriten = """ASML
+TSMC
+Micron
+Palantir
+Vertiv
+Siemens Energy
 Coinbase
 Alphabet
-CrowdStrike
-Microsoft
 NVIDIA
-ASML
-Vertiv
-TSMC
-MercadoLibre"""
+Crowdstrike"""
 
-default_aktien = """Rheinmetall
-Tesla
-Adyen
-CRISPR Therapeutics
-Block
-The Trade Desk
-Procter & Gamble
-Amazon
-Apple
-Strategy (MicroStrat.)
-Meta
-Datadog
-ServiceNow
-Tencent Holdings
-Axon Enterprise
-Siemens Energy
-Intuitive Surgical
-Eli Lilly
-Johnson & Johnson
-LVMH
-Realty Income
-Shopify
-Airbnb
-Fortinet
-Berkshire Hathaway
-AMD
-SAP
+default_aktien = """Adyen
 Aker Carbon Capture
-Cameco
+Airbnb (A)
+Alibaba Group (ADR)
+AMD
+Amazon.com
+Apple
+AST SpaceMobile
+Axon Enterprise
+Berkshire Hathaway (B)
+BitMine Immersion Technology
+Block
+BYD
+BMW
 Brookfield Asset Management
+Cameco
+Circle Internet Group
+Cloudflare (A)
+Constellation Energy
+Covestro
+Cummins
+Datadog (A)
+Deutsche Telekom
+Digindex
+DroneShield
+D-Wave Quantum
+Eli Lilly & Co
+Evonik Industries
+Fortinet
+Galaxy Digital Inc. Reg. Shs. Cl…
+Heidelberg Materials
+Hensoldt
+Illumina
+Impala Platinum
+Infineon Technologies
+Intellia Therapeutics
+Intellistake Technologies
+Intel
+Intuitive Surgical
+Johnson & Johnson
+KLA
+Lam Research
+LVMH Louis Vuitton Moet Hen…
+MercadoLibre
+Mercedes-Benz Group
+Meta Platforms (A)
+MicroStrategy (A)
+Microsoft
+Netflix
+Nio
+Nordex
+Novo Nordisk (ADR)
+Ondas Holdings
+Oracle
+Palo Alto Networks
+Procter & Gamble
+Quantum eMotion
+Realty Income
+RENK Group
+Rheinmetall
+Saab (B)
+SAP
+Schaeffler
+ServiceNow
+Shopify (A)
+Siemens
+SK Hynix (GDR)
+Snowflake (A)
+Spotify Technology
+Take-Two Interactive
+Tencent Holdings
+Tesla
+Thales
+The Trade Desk (A)
+ThyssenKrupp
+TKMS AG & Co. KGaA Inhaber-…
+Xiaomi
 """
 
-default_etfs = """MSCI World
-S&P 500
-Emerging Markets
-Physical Gold
-Cybersecurity/AI (Thematisch)
-EuroStoxx 600"""
+default_etfs = """AI & Big Data USD (Acc)
+Automation & Robotics USD (Acc)
+BlackRock World Mining Trust
+Core MSCI World USD (Acc)
+Core Stoxx Europe 600 EUR (Acc)
+MSCI EM USD (Acc)
+MSCI World Small Cap USD (Acc)
+Physical Gold USD (Acc)
+Space Innovators USD (Acc)
+STOXX Global Dividend 100 EU"""
 
 favoriten = st.text_area("Favoritenaktien (eine pro Zeile)", value=default_favoriten)
 st.caption("Falls keine Favoriten angegeben sind, wird das gesamte Aktienbudget auf rotierende Aktien verteilt.")
