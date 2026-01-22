@@ -42,7 +42,7 @@ anzahl_aktien_pro_monat = st.number_input(
     "Wie viele Aktien pro Monat besparen?",
     min_value=3,
     max_value=30,
-    value=5
+    value=8
 )
 
 st.caption(
@@ -178,11 +178,11 @@ shuffle_rotation = st.checkbox(
 
 seed_text = st.text_input(
     "Seed (optional): gleiche Zufallsauswahl wiederholen",
-    value="42"
+    value="420"
 )
 
 # Favoriten pro Monat
-favs_pro_monat = st.slider("Wie viele Favoriten pro Monat besparen?", 1, 3, 1)
+favs_pro_monat = st.slider("Wie viele Favoriten pro Monat besparen?", 1, 3, 2)
 
 # Auto-Modus für Gewichtung
 auto_modus = st.checkbox(
@@ -193,7 +193,7 @@ auto_modus = st.checkbox(
 min_rate_rotation = st.number_input(
     "Mindestbetrag pro Rotation-Aktie (€/Monat) – falls nötig wird die Anzahl Rotation-Aktien pro Monat automatisch reduziert",
     min_value=0.0,
-    value=10.0,
+    value=20.0,
     step=1.0
 )
 
