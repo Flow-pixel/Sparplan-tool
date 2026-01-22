@@ -166,14 +166,20 @@ st.caption("Falls keine ETFs angegeben sind, wird das gesamte Kapital auf Aktien
 # -----------------------------
 st.subheader("⚙️ Erweiterte Einstellungen")
 
-# Rotation Subset + Shuffle
 begrenze_rotation = st.checkbox(
-    "Rotation automatisch auf besparbare Anzahl begrenzen (Subset)",
+    "Rotation-Liste automatisch kürzen (nur so viele, wie im Zeitraum bespart werden können)",
     value=True
 )
-shuffle_seed = None
-if begrenze_rotation:
-    shuffle_seed = st.number_input("Shuffle-Seed (für reproduzierbare Zufallsauswahl)", value=42, step=1)
+
+shuffle_rotation = st.checkbox(
+    "Rotation zufällig mischen (empfohlen)",
+    value=True
+)
+
+seed_text = st.text_input(
+    "Seed (optional): gleiche Zufallsauswahl wiederholen",
+    value="42"
+)
 
 # Favoriten pro Monat
 favs_pro_monat = st.slider("Wie viele Favoriten pro Monat besparen?", 1, 3, 1)
@@ -185,7 +191,7 @@ auto_modus = st.checkbox(
 )
 
 min_rate_rotation = st.number_input(
-    "Mindestbetrag pro Rotation-Aktie (€/Monat) – wenn nötig wird die Anzahl Rotation-Aktien pro Monat automatisch reduziert",
+    "Mindestbetrag pro Rotation-Aktie (€/Monat) – falls nötig wird die Anzahl Rotation-Aktien pro Monat automatisch reduziert",
     min_value=0.0,
     value=10.0,
     step=1.0
@@ -201,8 +207,8 @@ if not auto_modus:
         value=40
     )
 
-# Optional: Chart-Top-N zur besseren Lesbarkeit (hilft auf Handy massiv)
-top_n_chart = st.slider("Chart: wie viele Positionen anzeigen (Top N)?", 10, 120, 40)
+# Diagramm-Limit
+top_n_chart = st.slider("Diagramm: Anzahl angezeigter Positionen", 10, 120, 40)
 
 # -----------------------------
 # Helper: Auto-Gewichtung
@@ -213,7 +219,6 @@ def auto_fav_share(total_stocks_per_month: int) -> int:
     - Wenige Aktien/Monat -> Favorit stärker gewichten
     - Viele Aktien/Monat  -> Favorit weniger gewichten
     """
-    # Beispiel: 5 -> ~35%, 10 -> ~20%, 20 -> ~15%
     share = 50 - 3 * total_stocks_per_month
     share = max(15, min(45, share))
     return int(share)
@@ -242,40 +247,49 @@ if st.button("Sparplan berechnen"):
     etf_budget = monatlicher_betrag * etf_anteil / 100
 
     # -----------------------------
-    # ETF-Raten (Priorisierung Fix: contains statt exact match)
+    # ETF-Raten: feste Zielgewichte (wie besprochen)
+    # Core MSCI World 25%
+    # BlackRock World Mining 5%
+    # Automation & Robotics 5%
+    # MSCI World Small Cap 5%
+    # Rest je 10% (normalisiert, falls ETFs fehlen/abweichen)
     # -----------------------------
-    def is_priorisiert(name: str) -> bool:
+    def etf_weight_for(name: str) -> float:
         n = name.lower()
-        return ("msci world" in n) or ("s&p 500" in n) or ("sp 500" in n)
 
-    priorisierte_etfs = [etf for etf in etf_list if is_priorisiert(etf)]
-    sonstige_etfs = [etf for etf in etf_list if etf not in priorisierte_etfs]
+        if "core msci world" in n:
+            return 0.25
+
+        if "blackrock world mining" in n:
+            return 0.05
+        if "automation & robotics" in n:
+            return 0.05
+        if "msci world small cap" in n:
+            return 0.05
+
+        return 0.10
+
+    raw_weights = {etf: etf_weight_for(etf) for etf in etf_list}
+    total_w = sum(raw_weights.values())
+
     etf_raten = {}
-
-    if len(etf_list) == 1:
-        etf_raten[etf_list[0]] = etf_budget
+    if total_w > 0:
+        for etf, w in raw_weights.items():
+            etf_raten[etf] = etf_budget * (w / total_w)
     else:
-        if priorisierte_etfs:
-            priorisiertes_budget = etf_budget * 0.5
-            rate_priorisiert = priorisiertes_budget / len(priorisierte_etfs) if len(priorisierte_etfs) else 0
-            for etf in priorisierte_etfs:
-                etf_raten[etf] = rate_priorisiert
-        if sonstige_etfs:
-            sonstiges_budget = etf_budget * 0.5 if priorisierte_etfs else etf_budget
-            rate_sonstig = sonstiges_budget / len(sonstige_etfs) if len(sonstige_etfs) else 0
-            for etf in sonstige_etfs:
-                etf_raten[etf] = rate_sonstig
+        if len(etf_list) > 0:
+            equal = etf_budget / len(etf_list)
+            for etf in etf_list:
+                etf_raten[etf] = equal
 
     # -----------------------------
     # Favoriten/Rotation: Anzahl pro Monat + Guards
     # -----------------------------
-    # Effektive Favoriten pro Monat kann nicht größer sein als Anzahl Favoriten
     favs_pro_monat_eff = min(favs_pro_monat, len(fav_list)) if len(fav_list) > 0 else 0
 
     rot_per_month_user = anzahl_aktien_pro_monat - favs_pro_monat_eff
     rot_per_month_user = max(0, rot_per_month_user)
 
-    # Guard: Rotationliste leer
     if len(rot_list) == 0:
         rot_per_month_user = 0
 
@@ -283,7 +297,6 @@ if st.button("Sparplan berechnen"):
     # Gewichtung Favorit/Rotation
     # -----------------------------
     if len(fav_list) == 0:
-        # keine Favoriten -> alles Rotation
         fav_share = 0
     else:
         if auto_modus:
@@ -298,7 +311,6 @@ if st.button("Sparplan berechnen"):
 
     # -----------------------------
     # Mindestbetrag-Logik (Option 1)
-    # Wenn rot_rate < min_rate_rotation => rot_per_month reduzieren
     # -----------------------------
     rot_per_month_eff = rot_per_month_user
     info_adjustments = []
@@ -306,7 +318,6 @@ if st.button("Sparplan berechnen"):
     if rot_per_month_eff > 0 and min_rate_rotation > 0:
         rot_rate_candidate = rot_budget_month / rot_per_month_eff if rot_per_month_eff else 0
         if rot_rate_candidate < min_rate_rotation:
-            # maximal mögliche Rotation-Anzahl, sodass Mindestbetrag eingehalten wird
             max_rot_count = int(rot_budget_month // min_rate_rotation) if min_rate_rotation > 0 else rot_per_month_eff
             max_rot_count = max(0, max_rot_count)
             if max_rot_count < rot_per_month_eff:
@@ -316,10 +327,7 @@ if st.button("Sparplan berechnen"):
                 )
                 rot_per_month_eff = max_rot_count
 
-    # Wenn Rotation effektiv 0, Budget lieber zu Favoriten umschichten (nur wenn Favoriten existieren)
-    # Das verhindert, dass Rotationsbudget "versandet".
     if rot_per_month_eff == 0 and len(fav_list) > 0:
-        # Schiebe alles in Favoriten
         fav_budget_month = aktien_budget
         rot_budget_month = 0
         fav_share = 100
@@ -327,28 +335,35 @@ if st.button("Sparplan berechnen"):
         info_adjustments.append("Keine Rotation möglich -> gesamtes Aktienbudget geht in Favoriten.")
 
     # -----------------------------
-    # Rotation Subset (Option A)
+    # Rotation: Shuffle (immer wenn aktiv) + optional Subset
     # -----------------------------
     slots_rot_total = monate * rot_per_month_eff
     rot_list_effective = rot_list[:]  # copy
 
-    if begrenze_rotation and rot_per_month_eff > 0 and len(rot_list_effective) > slots_rot_total:
-        import random
-        if shuffle_seed is not None:
-            random.seed(int(shuffle_seed))
+    import random
+
+    # 1) Shuffle
+    if shuffle_rotation and len(rot_list_effective) > 1:
+        seed_clean = seed_text.strip()
+        if seed_clean:
+            random.seed(int(seed_clean))  # reproduzierbar
+        else:
+            random.seed(None)  # echter Zufall
         random.shuffle(rot_list_effective)
+
+    # 2) Subset (nur Kürzen)
+    if begrenze_rotation and rot_per_month_eff > 0 and len(rot_list_effective) > slots_rot_total:
         dropped = len(rot_list_effective) - slots_rot_total
         rot_list_effective = rot_list_effective[:slots_rot_total]
         info_adjustments.append(
-            f"Rotation-Subset aktiv: {len(rot_list)} eingegeben, aber nur {slots_rot_total} "
-            f"Rotation-Slots verfügbar → {dropped} Werte wurden (nach Shuffle) nicht berücksichtigt."
+            f"Rotation gekürzt: {len(rot_list)} eingegeben, aber nur {slots_rot_total} Rotation-Slots "
+            f"({monate}×{rot_per_month_eff}) → {dropped} Werte wurden nicht berücksichtigt."
         )
     else:
-        # Transparenz, wenn nicht alle dran kommen (auch ohne Subset)
-        if rot_per_month_eff > 0 and len(rot_list_effective) > slots_rot_total and slots_rot_total > 0:
+        if rot_per_month_eff > 0 and len(rot_list) > slots_rot_total and slots_rot_total > 0:
             info_adjustments.append(
-                f"Hinweis: Du hast {len(rot_list)} Rotation-Aktien eingegeben, aber nur {slots_rot_total} Rotation-Slots "
-                f"({monate} Monate × {rot_per_month_eff}/Monat). Nicht alle werden bespart."
+                f"Hinweis: {len(rot_list)} Rotation-Aktien eingegeben, aber nur {slots_rot_total} Slots verfügbar "
+                f"({monate}×{rot_per_month_eff}). Nicht alle werden bespart."
             )
 
     # Favoriten- und Rotations-Roadmap erstellen
@@ -392,6 +407,12 @@ if st.button("Sparplan berechnen"):
     # Info-Ausgaben (Transparenz)
     if auto_modus and len(fav_list) > 0:
         st.info(f"Auto-Modus aktiv: Favoriten-Anteil im Aktienbudget wurde auf **{fav_share}%** gesetzt.")
+    if shuffle_rotation:
+        if seed_text.strip():
+            st.caption(f"Rotation wird gemischt (Seed: {seed_text.strip()}). Gleiche Eingaben + gleicher Seed = gleiche Auswahl.")
+        else:
+            st.caption("Rotation wird gemischt (ohne Seed). Jede Berechnung kann anders ausfallen.")
+
     if info_adjustments:
         for msg in info_adjustments:
             st.info(msg)
@@ -413,24 +434,17 @@ if st.button("Sparplan berechnen"):
     st.download_button("CSV herunterladen", data=csv, file_name="sparplan_gesamtuebersicht.csv", mime="text/csv")
 
     # -----------------------------
-    # Visualisierung: Verteilung nach Sparplan (Top-N)
+    # Visualisierung: Verteilung nach Sparplan (Top-N, ohne Others-Balken)
     # -----------------------------
     fig, ax = plt.subplots(figsize=(10, 6))
     farben = {"Favorit": "tab:green", "Rotation": "tab:orange", "ETF": "tab:blue"}
 
     df_sorted = df_export.sort_values(by="Gesamtbetrag (€)", ascending=False)
 
-    # Top-N + Rest als "Others" für Lesbarkeit
+    rest_sum = 0.0
     if len(df_sorted) > top_n_chart:
-        df_top = df_sorted.head(top_n_chart).copy()
-        df_rest = df_sorted.iloc[top_n_chart:].copy()
-        rest_sum = df_rest["Gesamtbetrag (€)"].sum()
-        if rest_sum > 0:
-            df_top = pd.concat([
-                df_top,
-                pd.DataFrame([{"Name": "Others (Rest)", "Typ": "Rotation", "Gesamtbetrag (€)": rest_sum}])
-            ], ignore_index=True)
-        df_plot = df_top
+        df_plot = df_sorted.head(top_n_chart).copy()
+        rest_sum = df_sorted.iloc[top_n_chart:]["Gesamtbetrag (€)"].sum()
     else:
         df_plot = df_sorted
 
@@ -451,6 +465,9 @@ if st.button("Sparplan berechnen"):
     ax.tick_params(axis='y', labelsize=8)
     plt.tight_layout()
     st.pyplot(fig)
+
+    if rest_sum > 0:
+        st.caption(f"Others (Rest): {rest_sum:,.2f} €")
 
     # -----------------------------
     # Visualisierung: Verteilung nach Typ
