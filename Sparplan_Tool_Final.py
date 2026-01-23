@@ -449,7 +449,6 @@ with st.form("inputs_form", clear_on_submit=False):
 
     st.subheader("⚙️ Erweiterte Einstellungen")
 
-    # ✅ Checkbox entfernt -> Limits immer sichtbar
     max_aktien = st.number_input(
         "Max. Aktien im Plan (inkl. Favoriten)",
         min_value=5, max_value=200, value=40, step=1, key="max_aktien"
@@ -502,25 +501,17 @@ with st.form("inputs_form", clear_on_submit=False):
 
     favs_pro_monat = st.slider("Wie viele Favoriten pro Monat besparen?", 1, 3, 2, key="favs_pro_monat")
 
-    auto_modus = st.checkbox(
-        "Auto-Modus: Favoriten-Multiplikator fix (empfohlen für Anfänger)",
-        value=True, key="auto_modus"
+    # ✅ Auto-Modus entfernt -> Multiplikator immer sichtbar
+    fav_multiplier = st.slider(
+        "Favoriten stärker besparen als Rotation (pro Aktie, Multiplikator)",
+        min_value=1.0, max_value=3.0, value=1.5, step=0.1, key="fav_multiplier"
     )
+    st.caption("Default: **1.5x** (Empfehlung). Höher = Favoriten bekommen mehr Budget pro Monat.")
 
     min_rate_rotation = st.number_input(
         "Mindestbetrag pro Rotation-Aktie (€/Monat) – falls nötig wird die Anzahl Rotation-Aktien pro Monat automatisch reduziert",
         min_value=0.0, value=20.0, step=1.0, key="min_rate_rotation"
     )
-
-    FAV_MULTIPLIER_AUTO = 1.5
-    if auto_modus:
-        fav_multiplier = FAV_MULTIPLIER_AUTO
-        st.caption(f"Auto-Modus aktiv: Favoriten werden pro Aktie mit **{fav_multiplier:.2f}x** gegenüber Rotation gewichtet.")
-    else:
-        fav_multiplier = st.slider(
-            "Favoriten stärker besparen als Rotation (pro Aktie, Multiplikator)",
-            min_value=1.0, max_value=3.0, value=1.5, step=0.1, key="fav_multiplier"
-        )
 
     top_n_chart = st.slider("Diagramm: Anzahl angezeigter Positionen", 10, 120, 40, key="top_n_chart")
     submitted = st.form_submit_button("Sparplan berechnen")
@@ -732,6 +723,7 @@ def compute_plan(
         "info_adjustments": info_adjustments,
         "top_n_chart": top_n_chart,
         "show_tag_table": show_tag_table,
+        "fav_multiplier": float(fav_multiplier),
     }
 
 if submitted:
@@ -752,7 +744,7 @@ if submitted:
             auswahl_wiederholbar=st.session_state.auswahl_wiederholbar,
             shuffle_rotation=st.session_state.shuffle_rotation,
             favs_pro_monat=st.session_state.favs_pro_monat,
-            fav_multiplier=(1.5 if st.session_state.auto_modus else st.session_state.get("fav_multiplier", 1.5)),
+            fav_multiplier=st.session_state.fav_multiplier,  # ✅ immer der Slider-Wert
             min_rate_rotation=st.session_state.min_rate_rotation,
             top_n_chart=st.session_state.top_n_chart,
             show_tag_table=st.session_state.get("show_tag_table", False),
@@ -779,7 +771,8 @@ if res is not None:
     st.caption(
         f"Rotation-Profil **{res['profil']}** • Trefferquote: **{res['hits']}/{len(res['rot_list_effective'])}** "
         f"(**{res['pct']:.0f}%**) • Stärke: **{res['profil_staerke']}** • "
-        f"{'wiederholbar' if res['auswahl_wiederholbar'] else 'jedes Mal neu'}"
+        f"{'wiederholbar' if res['auswahl_wiederholbar'] else 'jedes Mal neu'} • "
+        f"Favoriten-Multiplikator: **{res.get('fav_multiplier', 1.5):.2f}x**"
     )
 
     with st.expander("🧩 Gepickter Rotation-Pool (2-Spalten)", expanded=False):
