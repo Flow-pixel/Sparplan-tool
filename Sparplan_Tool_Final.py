@@ -116,6 +116,7 @@ Mercedes-Benz Group
 Meta Platforms (A)
 MicroStrategy (A)
 Microsoft
+MP Materials
 Netflix
 Nio
 Nordex
@@ -358,7 +359,7 @@ ALL_TAGS = {
         "Heidelberg Materials","Covestro","Evonik Industries","Impala Platinum"
     ],
     "Mining/Metals": [
-        "Cameco","BlackRock World Mining Trust","Critical Metals"
+        "Cameco","BlackRock World Mining Trust","Critical Metals","MP Materials"
     ],
     "Defense/Aerospace": [
         "Rheinmetall","Saab (B)","Thales","Hensoldt"
