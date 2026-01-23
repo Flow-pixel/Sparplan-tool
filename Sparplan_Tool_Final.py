@@ -144,7 +144,6 @@ TKMS AG & Co. KGaA Inhaber-…
 Xiaomi
 """
 
-# ✅ Änderung: Global Dividend raus, Defence USD rein
 default_etfs = """AI & Big Data USD (Acc)
 Automation & Robotics USD (Acc)
 BlackRock World Mining Trust
@@ -169,7 +168,6 @@ st.caption("Falls keine ETFs angegeben sind, wird das gesamte Kapital auf Aktien
 # -----------------------------
 st.subheader("⚙️ Erweiterte Einstellungen")
 
-# ✅ Anfänger-Preset: max Aktien 25, max ETFs 5
 einfach_modus = st.checkbox(
     "Einfach-Modus (empfohlen für Anfänger): begrenzt die Anzahl der Positionen automatisch",
     value=True
@@ -178,8 +176,10 @@ einfach_modus = st.checkbox(
 max_aktien = 25
 max_etfs = 5
 if einfach_modus:
-    st.caption("Einfach-Modus aktiv: Max. **25 Aktien** (inkl. Favoriten) und **5 ETFs**. "
-               "Wenn du mehr eingibst, wird eine Teilmenge ausgewählt.")
+    st.caption(
+        "Einfach-Modus aktiv: Max. **25 Aktien** (inkl. Favoriten) und **5 ETFs**. "
+        "Wenn du mehr eingibst, wird eine Teilmenge ausgewählt."
+    )
 else:
     max_aktien = st.number_input("Max. Aktien im Plan (inkl. Favoriten)", min_value=5, max_value=200, value=25, step=1)
     max_etfs = st.number_input("Max. ETFs im Plan", min_value=1, max_value=50, value=5, step=1)
@@ -189,26 +189,44 @@ begrenze_rotation = st.checkbox(
     value=True
 )
 
-shuffle_rotation = st.checkbox(
-    "Rotation zufällig mischen (empfohlen)",
+profil = st.selectbox(
+    "Anlage-Profil (steuert Rotation-Auswahl)",
+    options=[
+        "Ausgewogen (Standard)",
+        "Tech & AI",
+        "Wachstum",
+        "Dividenden & Value",
+        "Konservativ & defensiv",
+    ],
+    index=0
+)
+
+auswahl_wiederholbar = st.checkbox(
+    "Auswahl wiederholbar (gleiches Profil + gleiche Inputs = gleiche Reihenfolge)",
     value=True
 )
 
-seed_text = st.text_input(
-    "Seed (optional): gleiche Zufallsauswahl wiederholen",
-    value="420"
+shuffle_rotation = st.checkbox(
+    "Rotation mischen (empfohlen – verhindert Alphabet-Reihenfolge)",
+    value=True
 )
 
-# Favoriten pro Monat (Default 2)
+# ✅ Advanced (optional)
+with st.expander("🔧 Advanced (optional)"):
+    profil_staerke = st.selectbox(
+        "Profil-Stärke (wie stark das Profil die Rotation beeinflusst)",
+        options=["Mild", "Normal", "Strong"],
+        index=1
+    )
+    st.caption("Mild = mehr Zufall/Ausgewogenheit • Strong = Profil dominiert stärker")
+
 favs_pro_monat = st.slider("Wie viele Favoriten pro Monat besparen?", 1, 3, 2)
 
-# ✅ Auto-Modus für Multiplikator (Variante 1)
 auto_modus = st.checkbox(
     "Auto-Modus: Favoriten-Multiplikator fix (empfohlen für Anfänger)",
     value=True
 )
 
-# Mindestbetrag Rotation
 min_rate_rotation = st.number_input(
     "Mindestbetrag pro Rotation-Aktie (€/Monat) – falls nötig wird die Anzahl Rotation-Aktien pro Monat automatisch reduziert",
     min_value=0.0,
@@ -216,9 +234,7 @@ min_rate_rotation = st.number_input(
     step=1.0
 )
 
-# ✅ Multiplikator: Auto=fix 1.5x, Manual=Slider
 FAV_MULTIPLIER_AUTO = 1.5
-
 if auto_modus:
     fav_multiplier = FAV_MULTIPLIER_AUTO
     st.caption(f"Auto-Modus aktiv: Favoriten werden pro Aktie mit **{fav_multiplier:.2f}x** gegenüber Rotation gewichtet.")
@@ -236,12 +252,6 @@ top_n_chart = st.slider("Diagramm: Anzahl angezeigter Positionen", 10, 120, 40)
 # -----------------------------
 # Helper
 # -----------------------------
-def safe_int(s: str, default: int = 420) -> int:
-    try:
-        return int(s.strip())
-    except Exception:
-        return default
-
 def clean_lines(text: str):
     lines = []
     for raw in text.splitlines():
@@ -251,7 +261,6 @@ def clean_lines(text: str):
             lines.append(x)
     return lines
 
-# ETF Gewichte (wie besprochen)
 def etf_weight_for(name: str) -> float:
     n = name.lower()
     if "core msci world" in n:
@@ -267,11 +276,140 @@ def etf_weight_for(name: str) -> float:
 def pick_etfs(etf_list, max_count: int):
     if len(etf_list) <= max_count:
         return etf_list
-
     weights = {e: etf_weight_for(e) for e in etf_list}
     order_index = {e: i for i, e in enumerate(etf_list)}
     sorted_etfs = sorted(etf_list, key=lambda e: (-weights.get(e, 0.10), order_index.get(e, 10_000)))
     return sorted_etfs[:max_count]
+
+def profile_seed(profile: str) -> int:
+    mapping = {
+        "Ausgewogen (Standard)": 42,
+        "Tech & AI": 1337,
+        "Wachstum": 2024,
+        "Dividenden & Value": 777,
+        "Konservativ & defensiv": 99
+    }
+    return mapping.get(profile, 42)
+
+def strength_factor(level: str) -> int:
+    return {"Mild": 1, "Normal": 2, "Strong": 3}.get(level, 2)
+
+# Keyword Sets (einfach & robust, ohne externe Daten)
+TECH_BOOST = [
+    "nvidia", "amd", "asml", "tsmc", "micron", "intel", "infineon", "sk hynix",
+    "cloudflare", "crowdstrike", "palantir", "datadog", "servicenow", "snowflake",
+    "oracle", "microsoft", "meta", "alphabet", "tesla", "xiaomi",
+    "quantum", "d-wave", "ai", "robot", "drone", "chip", "semi", "semicon", "cyber"
+]
+GROWTH_BOOST = [
+    "shopify", "airbnb", "mercado", "netflix", "tesla", "byd", "xiaomi",
+    "palantir", "cloudflare", "datadog", "servicenow", "snowflake",
+    "drone", "quantum", "d-wave", "intellia", "illumina"
+]
+VALUE_DIV_BOOST = [
+    "procter", "johnson", "realty income", "berkshire", "deutsche telekom",
+    "bmw", "mercedes", "siemens", "sap", "lvmh", "cummins", "evonik",
+    "heidelberg", "saab", "thales", "covestro"
+]
+DEFENSIVE_BOOST = [
+    "deutsche telekom", "johnson", "procter", "berkshire", "realty income",
+    "siemens", "sap", "novo nordisk", "eli lilly", "constellation"
+]
+RISKY_PENALTY = [
+    "coinbase", "microstrategy", "bitmine", "quantum", "d-wave", "nio", "ondas",
+    "drone", "digindex"
+]
+
+def contains_any(n: str, keywords) -> bool:
+    return any(k in n for k in keywords)
+
+def score_rotation(name: str, profile: str) -> int:
+    n = name.lower()
+    score = 0
+
+    if profile == "Tech & AI":
+        if contains_any(n, TECH_BOOST):
+            score += 3
+        if contains_any(n, VALUE_DIV_BOOST):
+            score -= 1
+
+    elif profile == "Wachstum":
+        if contains_any(n, GROWTH_BOOST):
+            score += 3
+        if contains_any(n, DEFENSIVE_BOOST):
+            score -= 1
+
+    elif profile == "Dividenden & Value":
+        if contains_any(n, VALUE_DIV_BOOST):
+            score += 3
+        if contains_any(n, RISKY_PENALTY):
+            score -= 2
+
+    elif profile == "Konservativ & defensiv":
+        if contains_any(n, DEFENSIVE_BOOST):
+            score += 3
+        if contains_any(n, RISKY_PENALTY):
+            score -= 4
+        if contains_any(n, TECH_BOOST):
+            score -= 1
+
+    else:  # Ausgewogen
+        if contains_any(n, RISKY_PENALTY):
+            score -= 1
+
+    return score
+
+def explain_rotation(name: str, profile: str):
+    """Kurze, verständliche Begründung für Top Picks."""
+    n = name.lower()
+    reasons = []
+
+    if profile == "Tech & AI":
+        if contains_any(n, TECH_BOOST):
+            reasons.append("Tech/AI")
+        if "cyber" in n or "crowdstrike" in n:
+            reasons.append("Cyber")
+        if "cloud" in n or "cloudflare" in n:
+            reasons.append("Cloud")
+        if "chip" in n or "semi" in n or "asml" in n or "tsmc" in n or "amd" in n or "nvidia" in n:
+            reasons.append("Semis")
+
+    elif profile == "Wachstum":
+        if contains_any(n, GROWTH_BOOST):
+            reasons.append("Growth")
+        if "shopify" in n or "airbnb" in n or "netflix" in n:
+            reasons.append("Consumer/Platform")
+        if "intellia" in n or "illumina" in n:
+            reasons.append("Biotech")
+
+    elif profile == "Dividenden & Value":
+        if contains_any(n, VALUE_DIV_BOOST):
+            reasons.append("Value/Dividend")
+        if "realty income" in n:
+            reasons.append("REIT")
+        if "berkshire" in n:
+            reasons.append("Holding")
+
+    elif profile == "Konservativ & defensiv":
+        if contains_any(n, DEFENSIVE_BOOST):
+            reasons.append("Defensiv")
+        if "deutsche telekom" in n:
+            reasons.append("Telekom")
+        if "johnson" in n or "procter" in n:
+            reasons.append("Staples/Healthcare")
+        if "berkshire" in n:
+            reasons.append("Holding")
+
+    # Fallback
+    if not reasons:
+        reasons = ["Profil-Score"]
+
+    # Dedupe, max 3 Gründe
+    out = []
+    for r in reasons:
+        if r not in out:
+            out.append(r)
+    return out[:3]
 
 # -----------------------------
 # Berechnung
@@ -304,7 +442,6 @@ if st.button("Sparplan berechnen"):
     # Aktien limitieren (Favoriten zuerst)
     fav_list = fav_list_raw[:]
     rot_list = rot_list_raw[:]
-
     max_aktien_int = int(max_aktien)
 
     if len(fav_list) > max_aktien_int:
@@ -320,7 +457,6 @@ if st.button("Sparplan berechnen"):
     # ETF-Raten
     raw_weights = {etf: etf_weight_for(etf) for etf in etf_list}
     total_w = sum(raw_weights.values())
-
     etf_raten = {}
     if etf_list:
         if total_w > 0:
@@ -337,24 +473,15 @@ if st.button("Sparplan berechnen"):
     if not rot_list:
         rot_per_month_user = 0
 
-    # Mindestbetrag-Logik Rotation
     rot_per_month_eff = rot_per_month_user
     info_adjustments = []
 
-    # Budgets werden später verteilt -> erstmal Kandidat mit 50/50 zur Guard-Berechnung? (nicht nötig)
-    # Hier: rot_rate_min-Logik basiert auf finaler rot_rate => wir brauchen rot_budget_month.
-    # Wir setzen rot_budget_month erst nach Festlegung der Ratenverteilung (Multiplikator).
-
     # -----------------------------
-    # ✅ Kern-Logik Multiplikator
-    # Wir verteilen das Aktienbudget so, dass:
-    # - Jede Favorit-Aktie = fav_multiplier * (Rotation-Aktie)
-    # - Gesamt = aktien_budget
+    # Kern-Logik Multiplikator
     # -----------------------------
     fav_count = favs_pro_monat_eff
     rot_count = rot_per_month_eff
 
-    # Falls keine Rotation möglich -> alles Favoriten
     if rot_count == 0 and fav_count > 0:
         rot_rate = 0.0
         fav_rate_per_fav = aktien_budget / fav_count
@@ -367,15 +494,12 @@ if st.button("Sparplan berechnen"):
         rot_rate = 0.0
         info_adjustments.append("Keine Aktien ausgewählt (Favoriten/Rotation leer).")
     else:
-        # rot_rate ergibt sich aus Gewichtung
         denom = (rot_count * 1.0) + (fav_count * float(fav_multiplier))
         rot_rate = aktien_budget / denom if denom > 0 else 0.0
         fav_rate_per_fav = rot_rate * float(fav_multiplier)
 
-    # Mindestbetrag Rotation nochmal prüfen (jetzt mit echter rot_rate)
+    # Mindestbetrag Rotation prüfen
     if rot_per_month_eff > 0 and min_rate_rotation > 0 and rot_rate < min_rate_rotation:
-        # Reduziere Rotation-Anzahl so weit, bis rot_rate >= Mindestbetrag
-        # rot_rate = aktien_budget / (rot_count + fav_count*m)  -> steigt, wenn rot_count sinkt
         while rot_per_month_eff > 0:
             denom = (rot_per_month_eff * 1.0) + (fav_count * float(fav_multiplier))
             candidate_rot_rate = aktien_budget / denom if denom > 0 else 0.0
@@ -389,22 +513,62 @@ if st.button("Sparplan berechnen"):
             f"Rotation-Aktien/Monat reduziert, damit mind. {min_rate_rotation:.2f}€ pro Rotation-Aktie erreicht werden."
         )
 
-        # Wenn Rotation komplett wegfällt:
         if rot_per_month_eff == 0 and fav_count > 0:
             rot_rate = 0.0
             fav_rate_per_fav = aktien_budget / fav_count
             info_adjustments.append("Rotation fiel auf 0 -> gesamtes Aktienbudget geht in Favoriten.")
 
-    # Rotation: Shuffle + optional Subset
-    slots_rot_total = int(monate) * int(rot_per_month_eff)
+    # -----------------------------
+    # Profil-Scoring + Trefferanzeige + Top Picks
+    # -----------------------------
     rot_list_effective = rot_list[:]
+    prof_factor = strength_factor(profil_staerke)
 
-    import random
-    if shuffle_rotation and len(rot_list_effective) > 1:
-        seed = safe_int(seed_text, default=420) if seed_text.strip() else None
+    # Treffer zählen + Ranking vorbereiten (für Anzeige & sort)
+    scored_for_ui = []
+    hits = 0
+    for s in rot_list_effective:
+        base = score_rotation(s, profil)
+        sc = base * prof_factor
+        if sc > 0:
+            hits += 1
+        scored_for_ui.append((sc, s))
+
+    if rot_list_effective:
+        st.caption(f"Profil **{profil}**: {hits}/{len(rot_list_effective)} Rotation-Aktien matchen das Profil (Stärke: {profil_staerke}).")
+
+    # ✅ Top 5 Profil-Picks (nur Erklärung/Transparenz)
+    if rot_list_effective:
+        top5 = sorted(scored_for_ui, key=lambda t: t[0], reverse=True)[:5]
+        with st.expander("🔍 Profil-Details (Top Picks)", expanded=False):
+            show_reason = st.checkbox("Kurzbegründung anzeigen", value=True)
+            st.markdown(f"**Profil:** {profil}  •  **Stärke:** {profil_staerke}")
+            st.markdown("**Top 5 Rotation-Picks nach Profil-Score:**")
+            for i, (sc, name) in enumerate(top5, start=1):
+                if show_reason:
+                    reasons = ", ".join(explain_rotation(name, profil))
+                    st.markdown(f"{i}. **{name}** — Score **{sc:+d}** _(Match: {reasons})_")
+                else:
+                    st.markdown(f"{i}. **{name}** — Score **{sc:+d}**")
+            st.caption("Hinweis: Das beeinflusst nur die Reihenfolge der Rotation (kein Qualitäts-Ranking).")
+
+    # Sort + Mix (TieBreaker)
+    if rot_list_effective and shuffle_rotation:
+        import random
+        seed = profile_seed(profil) if auswahl_wiederholbar else None
         random.seed(seed)
-        random.shuffle(rot_list_effective)
 
+        scored = []
+        for s in rot_list_effective:
+            sc = score_rotation(s, profil) * prof_factor
+            tie = random.random()
+            scored.append((sc, tie, s))
+
+        scored.sort(key=lambda t: (-t[0], t[1]))
+        rot_list_effective = [t[2] for t in scored]
+
+    # Rotation Subset
+    slots_rot_total = int(monate) * int(rot_per_month_eff)
     if begrenze_rotation and rot_per_month_eff > 0 and len(rot_list_effective) > slots_rot_total:
         dropped = len(rot_list_effective) - slots_rot_total
         rot_list_effective = rot_list_effective[:slots_rot_total]
@@ -452,16 +616,13 @@ if st.button("Sparplan berechnen"):
             st.info(msg)
 
     if shuffle_rotation:
-        if seed_text.strip():
-            st.caption(f"Rotation wird gemischt (Seed: {safe_int(seed_text)}). Gleiche Eingaben + gleicher Seed = gleiche Auswahl.")
-        else:
-            st.caption("Rotation wird gemischt (ohne Seed). Jede Berechnung kann anders ausfallen.")
+        st.caption(f"Rotation-Profil aktiv: **{profil}** {'(wiederholbar)' if auswahl_wiederholbar else '(jedes Mal neu gemischt)'}.")
 
     if info_adjustments:
         for msg in info_adjustments:
             st.info(msg)
 
-    # Export DataFrame
+    # Export
     all_data = []
     for name, betrag in aktien_sum.items():
         typ = "Favorit" if name in fav_list else "Rotation"
@@ -478,7 +639,7 @@ if st.button("Sparplan berechnen"):
     csv = df_export.to_csv(index=False).encode("utf-8")
     st.download_button("CSV herunterladen", data=csv, file_name="sparplan_gesamtuebersicht.csv", mime="text/csv")
 
-    # Visualisierung: Verteilung nach Sparplan (Top-N)
+    # Chart: Verteilung nach Sparplan (Top-N)
     fig, ax = plt.subplots(figsize=(10, 6))
     farben = {"Favorit": "tab:green", "Rotation": "tab:orange", "ETF": "tab:blue"}
 
@@ -511,7 +672,7 @@ if st.button("Sparplan berechnen"):
     if rest_sum > 0:
         st.caption(f"Others (Rest): {rest_sum:,.2f} €")
 
-    # Verteilung nach Typ
+    # Typ Chart
     gruppe = df_export.groupby("Typ")["Gesamtbetrag (€)"].sum()
     fig1, ax1 = plt.subplots()
     ax1.bar(gruppe.index, gruppe.values, color=[farben.get(t, "gray") for t in gruppe.index])
@@ -519,7 +680,7 @@ if st.button("Sparplan berechnen"):
     ax1.set_ylabel("Gesamtbetrag (€)")
     st.pyplot(fig1)
 
-    # ETF-Allokation
+    # ETF Pie
     etf_df = df_export[df_export["Typ"] == "ETF"]
     if not etf_df.empty:
         fig2, ax2 = plt.subplots()
@@ -529,7 +690,7 @@ if st.button("Sparplan berechnen"):
 
     st.success("Sparplan erfolgreich berechnet!")
 
-    # Depotwachstum simulieren
+    # Depotwachstum
     with st.expander("📈 Depotwachstum simulieren"):
         st.markdown("Vereinfachte Simulation mit konstanter Rendite (ohne Gebühren/Steuern).")
 
@@ -556,7 +717,7 @@ if st.button("Sparplan berechnen"):
         ax.grid(True)
         st.pyplot(fig)
 
-    # Monatliche Raten: Monats-Auswahl
+    # Monatliche Raten
     st.subheader("Monatliche Raten")
 
     show_all = st.checkbox("Alle Monate anzeigen (lang)", value=False)
