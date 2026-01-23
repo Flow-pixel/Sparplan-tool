@@ -27,9 +27,9 @@ st.title("Dynamischer Sparplan-Rechner")
 # -----------------------------
 # Eingaben (Basics)
 # -----------------------------
-zielsumme = st.number_input("Zielsumme (€)", value=12000)
-monate = st.number_input("Dauer (Monate)", value=24)
-aktienanteil = st.slider("Aktienanteil (%)", 0, 100, 80)
+zielsumme = st.number_input("Zielsumme (€)", value=50000)
+monate = st.number_input("Dauer (Monate)", value=100)
+aktienanteil = st.slider("Aktienanteil (%)", 0, 100, 65)
 etf_anteil = 100 - aktienanteil
 
 monatlicher_betrag = zielsumme / monate if monate else 0
@@ -42,8 +42,8 @@ st.markdown(f"### Monatlicher Sparbetrag: {monatlicher_betrag:.2f} €")
 anzahl_aktien_pro_monat = st.number_input(
     "Wie viele Aktien pro Monat besparen?",
     min_value=3,
-    max_value=30,
-    value=8
+    max_value=15,
+    value=7
 )
 
 st.caption(
@@ -173,11 +173,11 @@ einfach_modus = st.checkbox(
     value=True
 )
 
-max_aktien = 25
-max_etfs = 5
+max_aktien = 40
+max_etfs = 10
 if einfach_modus:
     st.caption(
-        "Einfach-Modus aktiv: Max. **25 Aktien** (inkl. Favoriten) und **5 ETFs**. "
+        "Einfach-Modus aktiv: Max. **40 Aktien** (inkl. Favoriten) und **10 ETFs**. "
         "Wenn du mehr eingibst, wird eine Teilmenge ausgewählt."
     )
 else:
