@@ -85,6 +85,7 @@ Brookfield Asset Management
 Cameco
 Circle Internet Group
 Cloudflare (A)
+Critical Metals
 Constellation Energy
 Covestro
 Cummins
@@ -285,13 +286,13 @@ def pick_etfs(etf_list, max_count: int):
 
 def profile_seed(profile: str) -> int:
     mapping = {
-        "Ausgewogen (Standard)": 42,
+        "Ausgewogen (Standard)": 420,
         "Tech & AI": 1337,
         "Wachstum": 2024,
         "Dividenden & Value": 777,
         "Konservativ & defensiv": 99
     }
-    return mapping.get(profile, 42)
+    return mapping.get(profile, 420)
 
 # -----------------------------
 # Tagging: ALLE Rotation-Aktien bekommen Tags
@@ -357,7 +358,7 @@ ALL_TAGS = {
         "Heidelberg Materials","Covestro","Evonik Industries","Impala Platinum"
     ],
     "Mining/Metals": [
-        "Cameco","BlackRock World Mining Trust"
+        "Cameco","BlackRock World Mining Trust","Critical Metals"
     ],
     "Defense/Aerospace": [
         "Rheinmetall","Saab (B)","Thales","Hensoldt"
