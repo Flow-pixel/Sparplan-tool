@@ -129,6 +129,7 @@ Quantum eMotion
 Realty Income
 RENK Group
 Rheinmetall
+Rocket Lab Corp.
 Saab (B)
 SAP
 Schaeffler
@@ -320,7 +321,7 @@ ALL_TAGS = {
         "D-Wave Quantum","Quantum eMotion"
     ],
     "Space": [
-        "AST SpaceMobile","Space Innovators USD (Acc)","Ondas Holdings"
+        "AST SpaceMobile","Space Innovators USD (Acc)","Ondas Holdings","Rocket Lab Corp."
     ],
     "Robotics/Drone": [
         "DroneShield","Axon Enterprise","Tesla"  # Axon/Drone eher "Security-Tech"; Tesla auch Growth/Tech
