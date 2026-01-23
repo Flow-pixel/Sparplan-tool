@@ -854,7 +854,7 @@ if res is not None:
         st.pyplot(fig2)
 
     st.subheader("Monatliche Raten")
-    show_all = st.checkbox("Alle Monate anzeigen (lang)", value=False, key="show_all_months")
+    show_all = st.checkbox("Alle Monate anzeigen (lang)", value=True, key="show_all_months")
 
     def render_month(m_index: int):
         st.markdown(f"**Monat {m_index + 1} – Aktien**")
