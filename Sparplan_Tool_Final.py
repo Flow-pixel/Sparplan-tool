@@ -190,7 +190,6 @@ def profile_seed(profile: str) -> int:
 # Tagging: ALLE Rotation-Aktien bekommen Tags
 # -----------------------------
 ALL_TAGS = {
-    # Tech / AI
     "Semis": [
         "ASML","TSMC","Micron","AMD","Intel","Infineon Technologies","SK Hynix (GDR)","KLA","Lam Research"
     ],
@@ -216,7 +215,6 @@ ALL_TAGS = {
         "DroneShield","Axon Enterprise"
     ],
 
-    # Growth / Platform
     "Platform/Consumer": [
         "Airbnb (A)","Netflix","Spotify Technology","Shopify (A)","MercadoLibre","Take-Two Interactive",
         "Alibaba Group (ADR)","Amazon.com","Apple","Tencent Holdings","Xiaomi"
@@ -225,7 +223,6 @@ ALL_TAGS = {
         "Tesla","BYD","Nio","BMW","Mercedes-Benz Group"
     ],
 
-    # Value / Dividend / Quality
     "Holding/Quality": [
         "Berkshire Hathaway (B)","Brookfield Asset Management"
     ],
@@ -242,7 +239,6 @@ ALL_TAGS = {
         "Intellia Therapeutics","Intellistake Technologies"
     ],
 
-    # Industrials / Materials / Energy / Defense
     "Industrials": [
         "Siemens","Siemens Energy","Cummins","Schaeffler","ThyssenKrupp","TKMS AG & Co. KGaA Inhaber-…",
         "Nordex","Constellation Energy","RENK Group"
@@ -257,12 +253,9 @@ ALL_TAGS = {
         "Rheinmetall","Saab (B)","Thales","Hensoldt"
     ],
 
-    # Real Estate
     "REIT": [
         "Realty Income"
     ],
-
-    # Special / Misc
     "Carbon/ESG": [
         "Aker Carbon Capture"
     ],
@@ -270,7 +263,7 @@ ALL_TAGS = {
         "LVMH Louis Vuitton Moet Hen…"
     ],
     "Other": [
-        "Adyen","BMW","Mercedes-Benz Group"  # falls du hier später feiner taggen willst
+        "Adyen"
     ],
 }
 
@@ -317,7 +310,6 @@ def tags_for_rotation(name: str) -> list[str]:
     if n in _TAG_LOOKUP:
         tags |= _TAG_LOOKUP[n]
     else:
-        # fallback contains: for truncated names like "TKMS ...", "LVMH ...", "Galaxy Digital ..."
         for key_norm, tset in _TAG_LOOKUP.items():
             if key_norm and (key_norm in n or n in key_norm):
                 tags |= tset
@@ -351,7 +343,6 @@ def score_rotation(name: str, profile: str) -> int:
         if t in wanted:
             score += 3
 
-    # penalties
     if profile in ["Dividenden & Value", "Konservativ & defensiv"]:
         if "High Volatility" in tags:
             score -= 4
@@ -378,13 +369,6 @@ def pick_rotation_by_profile(
     do_shuffle: bool,
     desired_pool_size: int | None = None
 ) -> list[str]:
-    """
-    PICKT den Pool profilbasiert (nicht nur Reihenfolge).
-    strength:
-      - Mild: wenig Filter (Mix bleibt drin)
-      - Normal: positives bevorzugt
-      - Strong: positives stark bevorzugt, fallback auf Top-Score wenn zu wenige
-    """
     if not rot_list:
         return []
 
@@ -406,9 +390,7 @@ def pick_rotation_by_profile(
     positives = [t for t in scored if t[0] > 0]
     rest = [t for t in scored if t[0] <= 0]
 
-    if strength == "Mild":
-        ordered = [t[2] for t in positives] + [t[2] for t in rest]
-    elif strength == "Normal":
+    if strength in ["Mild", "Normal"]:
         ordered = [t[2] for t in positives] + [t[2] for t in rest]
     else:  # Strong
         ordered_pos = [t[2] for t in positives]
@@ -416,7 +398,7 @@ def pick_rotation_by_profile(
         if len(ordered_pos) >= max(5, int(0.3 * len(rot_list))):
             ordered = ordered_pos + [t[2] for t in rest]
         else:
-            ordered = ordered_all  # fallback
+            ordered = ordered_all
 
     if desired_pool_size:
         return ordered[:desired_pool_size]
@@ -438,7 +420,7 @@ def render_two_col_grid(items: list[str]):
             st.markdown(f"- {it}")
 
 # -----------------------------
-# UI: Inputs in a form (keine "verschwindenden Slider" mehr)
+# UI: Inputs in a form
 # -----------------------------
 with st.form("inputs_form", clear_on_submit=False):
     st.subheader("Eingaben")
@@ -456,7 +438,6 @@ with st.form("inputs_form", clear_on_submit=False):
         "Wie viele Aktien pro Monat besparen?",
         min_value=3, max_value=15, value=7, key="anzahl_aktien_pro_monat"
     )
-
     st.caption("Favoriten werden pro Aktie stärker bespart als Rotation. Rotation-Aktien werden automatisch ergänzt.")
 
     favoriten = st.text_area("Favoritenaktien (eine pro Zeile)", value=default_favoriten, key="favoriten")
@@ -468,18 +449,18 @@ with st.form("inputs_form", clear_on_submit=False):
 
     st.subheader("⚙️ Erweiterte Einstellungen")
 
-    einfach_modus = st.checkbox(
-        "Einfach-Modus (empfohlen für Anfänger): begrenzt die Anzahl der Positionen automatisch",
-        value=True, key="einfach_modus"
+    # ✅ Checkbox entfernt -> Limits immer sichtbar
+    max_aktien = st.number_input(
+        "Max. Aktien im Plan (inkl. Favoriten)",
+        min_value=5, max_value=200, value=40, step=1, key="max_aktien"
     )
+    st.caption("Default: **40** (wie vorher im Einfach-Modus).")
 
-    if einfach_modus:
-        max_aktien = 40
-        max_etfs = 10
-        st.caption("Einfach-Modus aktiv: Max. **40 Aktien** (inkl. Favoriten) und **10 ETFs**.")
-    else:
-        max_aktien = st.number_input("Max. Aktien im Plan (inkl. Favoriten)", min_value=5, max_value=200, value=40, step=1, key="max_aktien")
-        max_etfs = st.number_input("Max. ETFs im Plan", min_value=1, max_value=50, value=10, step=1, key="max_etfs")
+    max_etfs = st.number_input(
+        "Max. ETFs im Plan",
+        min_value=1, max_value=50, value=10, step=1, key="max_etfs"
+    )
+    st.caption("Default: **10** (wie vorher im Einfach-Modus).")
 
     begrenze_rotation = st.checkbox(
         "Rotation-Liste automatisch kürzen (nur so viele, wie im Zeitraum bespart werden können)",
@@ -508,7 +489,6 @@ with st.form("inputs_form", clear_on_submit=False):
         value=True, key="shuffle_rotation"
     )
 
-    # weniger Expander: nur 1 optionaler Block
     with st.expander("🔧 Optional (Advanced)", expanded=False):
         profil_staerke = st.selectbox(
             "Profil-Stärke (wie stark das Profil die Rotation beeinflusst)",
@@ -517,7 +497,6 @@ with st.form("inputs_form", clear_on_submit=False):
         )
         show_tag_table = st.checkbox("Rotation-Kategorisierung anzeigen (Tabelle)", value=False, key="show_tag_table")
         st.caption("Mild = wenig Filter • Strong = harter Filter (Fallback wenn zu wenige Treffer)")
-    # default falls expander nie geöffnet:
     profil_staerke = st.session_state.get("profil_staerke", "Strong")
     show_tag_table = st.session_state.get("show_tag_table", False)
 
@@ -544,7 +523,6 @@ with st.form("inputs_form", clear_on_submit=False):
         )
 
     top_n_chart = st.slider("Diagramm: Anzahl angezeigter Positionen", 10, 120, 40, key="top_n_chart")
-
     submitted = st.form_submit_button("Sparplan berechnen")
 
 # -----------------------------
@@ -555,7 +533,7 @@ def compute_plan(
     favoriten_text, rotation_text, etfs_text,
     max_aktien, max_etfs, begrenze_rotation,
     profil, profil_staerke, auswahl_wiederholbar, shuffle_rotation,
-    favs_pro_monat, fav_multiplier, min_rate_rotation, top_n_chart
+    favs_pro_monat, fav_multiplier, min_rate_rotation, top_n_chart, show_tag_table
 ):
     info_limits = []
     info_adjustments = []
@@ -583,7 +561,7 @@ def compute_plan(
     if len(etf_list_raw) > len(etf_list):
         info_limits.append(f"ETF-Limit aktiv: {len(etf_list_raw)} eingegeben → **{len(etf_list)}** werden verwendet.")
 
-    # ✅ Aktien-Limit: Rotation wird PROFIL-BASIERT gepickt
+    # Aktien-Limit: Rotation wird PROFIL-BASIERT gepickt
     fav_list = fav_list_raw[:]
     rot_list_all = rot_list_raw[:]
     max_aktien_int = int(max_aktien)
@@ -735,8 +713,6 @@ def compute_plan(
 
     return {
         "monatlicher_betrag": monatlicher_betrag,
-        "aktien_budget": aktien_budget,
-        "etf_budget": etf_budget,
         "etf_list": etf_list,
         "etf_raten": etf_raten,
         "fav_list": fav_list,
@@ -752,7 +728,6 @@ def compute_plan(
         "profil": profil,
         "profil_staerke": profil_staerke,
         "auswahl_wiederholbar": auswahl_wiederholbar,
-        "shuffle_rotation": shuffle_rotation,
         "info_limits": info_limits,
         "info_adjustments": info_adjustments,
         "top_n_chart": top_n_chart,
@@ -769,17 +744,18 @@ if submitted:
             favoriten_text=st.session_state.favoriten,
             rotation_text=st.session_state.rotation_aktien,
             etfs_text=st.session_state.etfs,
-            max_aktien=max_aktien,
-            max_etfs=max_etfs,
+            max_aktien=st.session_state.max_aktien,
+            max_etfs=st.session_state.max_etfs,
             begrenze_rotation=st.session_state.begrenze_rotation,
             profil=st.session_state.profil,
-            profil_staerke=profil_staerke,
+            profil_staerke=st.session_state.get("profil_staerke", "Strong"),
             auswahl_wiederholbar=st.session_state.auswahl_wiederholbar,
             shuffle_rotation=st.session_state.shuffle_rotation,
             favs_pro_monat=st.session_state.favs_pro_monat,
             fav_multiplier=(1.5 if st.session_state.auto_modus else st.session_state.get("fav_multiplier", 1.5)),
             min_rate_rotation=st.session_state.min_rate_rotation,
             top_n_chart=st.session_state.top_n_chart,
+            show_tag_table=st.session_state.get("show_tag_table", False),
         )
         st.session_state.result = res
         st.session_state.last_info_limits = res["info_limits"]
@@ -795,24 +771,20 @@ res = st.session_state.result
 if res is not None:
     st.divider()
 
-    # Info boxes (wieder da)
     for msg in st.session_state.last_info_limits:
         st.info(msg)
     for msg in st.session_state.last_info_adjustments:
         st.info(msg)
 
-    # Trefferquote + Profil
     st.caption(
         f"Rotation-Profil **{res['profil']}** • Trefferquote: **{res['hits']}/{len(res['rot_list_effective'])}** "
         f"(**{res['pct']:.0f}%**) • Stärke: **{res['profil_staerke']}** • "
         f"{'wiederholbar' if res['auswahl_wiederholbar'] else 'jedes Mal neu'}"
     )
 
-    # Rotation Pool in Expander + 2-spaltig
     with st.expander("🧩 Gepickter Rotation-Pool (2-Spalten)", expanded=False):
         render_two_col_grid(res["rot_list_effective"])
 
-    # Optional: Tag table
     if res["show_tag_table"] and res["rot_list_effective"]:
         rows = []
         for s in res["rot_list_effective"]:
@@ -824,28 +796,23 @@ if res is not None:
         st.subheader("Rotation-Kategorisierung")
         st.dataframe(pd.DataFrame(rows), use_container_width=True)
 
-    # Top 5 Picks
     if res["rot_list_effective"]:
         top5 = sorted([(score_rotation(s, res["profil"]), s) for s in res["rot_list_effective"]], key=lambda t: t[0], reverse=True)[:5]
         with st.expander("🔍 Profil-Details (Top 5 Picks)", expanded=False):
             show_reason = st.checkbox("Kurzbegründung anzeigen", value=True, key="show_reason_top5")
-            st.markdown(f"**Profil:** {res['profil']}  •  **Stärke:** {res['profil_staerke']}")
             for i, (sc, name) in enumerate(top5, start=1):
                 if show_reason:
                     reasons = ", ".join(explain_rotation(name, res["profil"]))
                     st.markdown(f"{i}. **{name}** — Score **{sc:+d}** _(Tags: {reasons})_")
                 else:
                     st.markdown(f"{i}. **{name}** — Score **{sc:+d}**")
-            st.caption("Hinweis: Das ist ein Sortier-/Auswahl-Mechanismus, kein Qualitäts-Ranking.")
 
-    # Gesamtübersicht
     st.subheader("Gesamtübersicht")
     st.dataframe(res["df_export"], use_container_width=True)
 
     csv = res["df_export"].to_csv(index=False).encode("utf-8")
     st.download_button("CSV herunterladen", data=csv, file_name="sparplan_gesamtuebersicht.csv", mime="text/csv")
 
-    # Chart: Verteilung nach Sparplan (Top-N)
     fig, ax = plt.subplots(figsize=(10, 6))
     farben = {"Favorit": "tab:green", "Rotation": "tab:orange", "ETF": "tab:blue"}
 
@@ -879,7 +846,6 @@ if res is not None:
     if rest_sum > 0:
         st.caption(f"Others (Rest): {rest_sum:,.2f} €")
 
-    # Typ Chart
     gruppe = res["df_export"].groupby("Typ")["Gesamtbetrag (€)"].sum()
     fig1, ax1 = plt.subplots()
     ax1.bar(gruppe.index, gruppe.values, color=[farben.get(t, "gray") for t in gruppe.index])
@@ -887,7 +853,6 @@ if res is not None:
     ax1.set_ylabel("Gesamtbetrag (€)")
     st.pyplot(fig1)
 
-    # ETF Pie
     etf_df = res["df_export"][res["df_export"]["Typ"] == "ETF"]
     if not etf_df.empty:
         fig2, ax2 = plt.subplots()
@@ -895,36 +860,7 @@ if res is not None:
         ax2.set_title("ETF-Allokation")
         st.pyplot(fig2)
 
-    # Depotwachstum
-    with st.expander("📈 Depotwachstum simulieren", expanded=False):
-        st.markdown("Vereinfachte Simulation mit konstanter Rendite (ohne Gebühren/Steuern).")
-
-        fig, ax = plt.subplots()
-        renditen = {
-            "Underperform (4%)": 0.04,
-            "Default (8%)": 0.08,
-            "Overperform (20%)": 0.20,
-            "Godmode (50%)": 0.50
-        }
-
-        for label, rate in renditen.items():
-            depotwert = []
-            gesamt = 0
-            for _ in range(res["monate_int"]):
-                gesamt = (gesamt + res["monatlicher_betrag"]) * (1 + rate / 12)
-                depotwert.append(gesamt)
-            ax.plot(range(1, res["monate_int"] + 1), depotwert, label=label)
-
-        ax.set_title("Investmentwachstum mit Zinseszins")
-        ax.set_xlabel("Monat")
-        ax.set_ylabel("Depotwert (€)")
-        ax.legend()
-        ax.grid(True)
-        st.pyplot(fig)
-
-    # Monatliche Raten (ohne neu berechnen)
     st.subheader("Monatliche Raten")
-
     show_all = st.checkbox("Alle Monate anzeigen (lang)", value=False, key="show_all_months")
 
     def render_month(m_index: int):
