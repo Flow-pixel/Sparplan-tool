@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import re
 import random
+from collections import defaultdict
 
 st.set_page_config(page_title="Dynamischer Sparplan-Rechner", layout="wide")
 
@@ -50,6 +51,7 @@ Alphabet
 NVIDIA
 Crowdstrike"""
 
+# ✅ Rotation-Pool ergänzt: ALLE neuen Aktien sind drin
 default_aktien = """Adyen
 Aker Carbon Capture
 Airbnb (A)
@@ -59,48 +61,64 @@ Amazon.com
 Apple
 AST SpaceMobile
 Axon Enterprise
+BAE Systems
 Berkshire Hathaway (B)
 BitMine Immersion Technology
 Block
+Bloom Energy
 BYD
 BMW
 Brookfield Asset Management
 Cameco
 Circle Internet Group
 Cloudflare (A)
-Critical Metals
+Coca-Cola
 Constellation Energy
 Covestro
+Critical Metals
 Cummins
+CSG Group / Czeschoslovak Group
 Datadog (A)
 Deutsche Telekom
-Digindex
+Diginex
 DroneShield
 D-Wave Quantum
+Elbit Systems
 Eli Lilly & Co
+Endeavour Silver
 Evonik Industries
 Fortinet
 Galaxy Digital Inc. Reg. Shs. Cl…
+GE Aerospace
+GEA
+Hecla Mining
 Heidelberg Materials
 Hensoldt
+Ibiden
+Iberdrola
 Illumina
 Impala Platinum
 Infineon Technologies
 Intellia Therapeutics
 Intellistake Technologies
 Intel
+Iren
 Intuitive Surgical
 Johnson & Johnson
+JP Morgan Chase
 KLA
 Lam Research
+Leonardo-Finmeccanica
 LVMH Louis Vuitton Moet Hen…
 MercadoLibre
 Mercedes-Benz Group
 Meta Platforms (A)
 MicroStrategy (A)
 Microsoft
+Morgan Stanley
 MP Materials
 Netflix
+Newmont
 Nio
 Nordex
 Novo Nordisk (ADR)
@@ -108,20 +126,30 @@ Ondas Holdings
 Oracle
 Palo Alto Networks
 Procter & Gamble
+Prysmian
+Qualcomm
 Quantum eMotion
 Realty Income
+Reddit
 RENK Group
+Renk
 Rheinmetall
+Riot Platforms
 Rocket Lab Corp.
+Rolls Royce
 Saab (B)
+Safran
+Samsung
 SAP
 Schaeffler
 ServiceNow
 Shopify (A)
 Siemens
 SK Hynix (GDR)
+SK Hynix
 Snowflake (A)
 Spotify Technology
+Synopsys
 Take-Two Interactive
 Tencent Holdings
 Tesla
@@ -129,6 +157,8 @@ Thales
 The Trade Desk (A)
 ThyssenKrupp
 TKMS AG & Co. KGaA Inhaber-…
+Uranium Energy
+Visa
 Xiaomi
 """
 
@@ -187,23 +217,29 @@ def profile_seed(profile: str) -> int:
     return mapping.get(profile, 420)
 
 # -----------------------------
-# Tagging: ALLE Rotation-Aktien bekommen Tags
+# Tagging: ALLE Rotation-Aktien bekommen Tags (inkl. neuer Werte + neue Tags)
 # -----------------------------
 ALL_TAGS = {
+    # Tech / AI
     "Semis": [
-        "ASML","TSMC","Micron","AMD","Intel","Infineon Technologies","SK Hynix (GDR)","KLA","Lam Research"
+        "ASML","TSMC","Micron","AMD","NVIDIA","Intel","Infineon Technologies","SK Hynix (GDR)","SK Hynix",
+        "KLA","Lam Research",
+        "Samsung","Qualcomm","Ibiden","Synopsys"
     ],
     "Software/Cloud": [
-        "Microsoft","Oracle","SAP","ServiceNow","Snowflake (A)","Cloudflare (A)","Datadog (A)","Meta Platforms (A)","Alphabet"
+        "Microsoft","Oracle","SAP","ServiceNow","Snowflake (A)","Cloudflare (A)","Datadog (A)",
+        "Meta Platforms (A)","Alphabet"
     ],
     "Cyber": [
         "Crowdstrike","Fortinet","Palo Alto Networks"
     ],
     "AI/Data": [
-        "Palantir","The Trade Desk (A)"
+        "Palantir","The Trade Desk (A)","Reddit"
     ],
     "FinTech/Crypto": [
-        "Coinbase","MicroStrategy (A)","Block","Circle Internet Group","Digindex","BitMine Immersion Technology"
+        "Coinbase","MicroStrategy (A)","Block","Circle Internet Group",
+        "Digindex","Diginex","BitMine Immersion Technology",
+        "Riot Platforms","Iren","Visa"
     ],
     "Quantum": [
         "D-Wave Quantum","Quantum eMotion"
@@ -215,19 +251,28 @@ ALL_TAGS = {
         "DroneShield","Axon Enterprise"
     ],
 
+    # Consumer / Platform / Media
     "Platform/Consumer": [
         "Airbnb (A)","Netflix","Spotify Technology","Shopify (A)","MercadoLibre","Take-Two Interactive",
-        "Alibaba Group (ADR)","Amazon.com","Apple","Tencent Holdings","Xiaomi"
+        "Alibaba Group (ADR)","Amazon.com","Apple","Tencent Holdings","Xiaomi","Reddit"
     ],
+    "Staples": [
+        "Procter & Gamble","Coca-Cola"
+    ],
+
+    # Auto
     "EV/Auto": [
         "Tesla","BYD","Nio","BMW","Mercedes-Benz Group"
     ],
 
+    # Financials (neu)
+    "Financials": [
+        "Morgan Stanley","JP Morgan Chase","JPMorgan Chase","JPMorgan"
+    ],
+
+    # Value / Dividend / Quality
     "Holding/Quality": [
         "Berkshire Hathaway (B)","Brookfield Asset Management"
-    ],
-    "Staples": [
-        "Procter & Gamble"
     ],
     "Telecom": [
         "Deutsche Telekom"
@@ -239,29 +284,61 @@ ALL_TAGS = {
         "Intellia Therapeutics","Intellistake Technologies"
     ],
 
+    # Industrials / Energy / Infrastructure
     "Industrials": [
         "Siemens","Siemens Energy","Cummins","Schaeffler","ThyssenKrupp","TKMS AG & Co. KGaA Inhaber-…",
-        "Nordex","Constellation Energy","RENK Group"
-    ],
-    "Materials/Chemicals": [
-        "Heidelberg Materials","Covestro","Evonik Industries","Impala Platinum"
-    ],
-    "Mining/Metals": [
-        "Cameco","Critical Metals","MP Materials"
-    ],
-    "Defense/Aerospace": [
-        "Rheinmetall","Saab (B)","Thales","Hensoldt"
+        "Nordex","Constellation Energy","RENK Group","Renk",
+        "GEA","Prysmian"
     ],
 
+    # Utilities / Energy (neu)
+    "Utilities/Energy": [
+        "Iberdrola"
+    ],
+
+    # Clean Energy (neu)
+    "Clean Energy": [
+        "Bloom Energy"
+    ],
+
+    # Materials / Mining
+    "Materials/Chemicals": [
+        "Heidelberg Materials","Covestro","Evonik Industries","Impala Platinum","Rio Tinto"
+    ],
+    "Mining/Metals": [
+        "Cameco","Critical Metals","MP Materials",
+        "Endeavour Silver","Hecla Mining","Newmont"
+    ],
+
+    # Uranium / Nuclear (neu)
+    "Uranium/Nuclear": [
+        "Cameco","Uranium Energy"
+    ],
+
+    # Defense / Aerospace
+    "Defense/Aerospace": [
+        "Rheinmetall","Saab (B)","Thales","Hensoldt",
+        "Elbit Systems","Leonardo-Finmeccanica","BAE Systems","Safran","Airbus",
+        "Rolls Royce","GE Aerospace",
+        "CSG Group / Czeschoslovak Group"
+    ],
+
+    # Real Estate
     "REIT": [
         "Realty Income"
     ],
+
+    # ESG / Carbon
     "Carbon/ESG": [
         "Aker Carbon Capture"
     ],
+
+    # Luxury
     "Luxury": [
         "LVMH Louis Vuitton Moet Hen…"
     ],
+
+    # Fallback
     "Other": [
         "Adyen"
     ],
@@ -269,19 +346,31 @@ ALL_TAGS = {
 
 RISK_TAGS = {
     "High Volatility": [
-        "Coinbase","MicroStrategy (A)","BitMine Immersion Technology","Digindex","Nio"
+        "Coinbase","MicroStrategy (A)","BitMine Immersion Technology","Digindex","Diginex","Nio",
+        "Riot Platforms","Iren"
     ],
     "Early/Speculative": [
-        "Quantum eMotion","D-Wave Quantum","Ondas Holdings","DroneShield","AST SpaceMobile"
+        "Quantum eMotion","D-Wave Quantum","Ondas Holdings","DroneShield","AST SpaceMobile",
+        "Bloom Energy","Uranium Energy"
     ],
 }
 
 PROFILE_WANTED_TAGS = {
-    "Ausgewogen (Standard)": [],
-    "Tech & AI": ["Semis", "Software/Cloud", "Cyber", "AI/Data", "Quantum", "Robotics/Drone", "FinTech/Crypto"],
-    "Wachstum": ["Platform/Consumer", "EV/Auto", "Biotech", "Space", "FinTech/Crypto", "AI/Data"],
-    "Dividenden & Value": ["Holding/Quality", "Staples", "Telecom", "Healthcare/Pharma", "Industrials", "Materials/Chemicals", "Mining/Metals", "Luxury", "REIT"],
-    "Konservativ & defensiv": ["Holding/Quality", "Staples", "Telecom", "Healthcare/Pharma", "Industrials", "REIT", "Materials/Chemicals"],
+    "Ausgewogen (Standard)": [],  # ✅ wird über Diversifikation gepickt (siehe pick_rotation_by_profile)
+    "Tech & AI": [
+        "Semis", "Software/Cloud", "Cyber", "AI/Data", "Quantum", "Robotics/Drone", "FinTech/Crypto"
+    ],
+    "Wachstum": [
+        "Platform/Consumer", "EV/Auto", "Biotech", "Space", "FinTech/Crypto", "AI/Data", "Clean Energy"
+    ],
+    "Dividenden & Value": [
+        "Holding/Quality", "Staples", "Telecom", "Healthcare/Pharma", "Industrials", "Materials/Chemicals",
+        "Mining/Metals", "Luxury", "REIT", "Financials", "Utilities/Energy", "Uranium/Nuclear", "Defense/Aerospace"
+    ],
+    "Konservativ & defensiv": [
+        "Holding/Quality", "Staples", "Telecom", "Healthcare/Pharma", "Industrials", "REIT",
+        "Materials/Chemicals", "Financials", "Utilities/Energy", "Defense/Aerospace"
+    ],
 }
 
 def normalize_name(x: str) -> str:
@@ -289,7 +378,7 @@ def normalize_name(x: str) -> str:
     x = x.replace("…", "...")  # normalize ellipsis if present
     x = re.sub(r"\(a\)|\(b\)", "", x)
     x = x.replace("adr", "")
-    x = re.sub(r"[^a-z0-9\s\.\-&]", "", x)
+    x = re.sub(r"[^a-z0-9\s\.\-&/]", "", x)
     x = re.sub(r"\s+", " ", x).strip()
     return x
 
@@ -302,6 +391,8 @@ _RISK_LOOKUP = {}
 for tag, names in RISK_TAGS.items():
     for n in names:
         _RISK_LOOKUP.setdefault(normalize_name(n), set()).add(tag)
+
+RISK_TAG_SET = {"High Volatility", "Early/Speculative"}
 
 def tags_for_rotation(name: str) -> list[str]:
     n = normalize_name(name)
@@ -329,11 +420,21 @@ def tags_for_rotation(name: str) -> list[str]:
 
     return sorted(tags)
 
+def is_risky(name: str) -> bool:
+    t = set(tags_for_rotation(name))
+    return bool(t & RISK_TAG_SET)
+
+def thematic_tags(name: str) -> list[str]:
+    """Tags ohne Risk-Overlays (für Diversifikation)"""
+    t = [x for x in tags_for_rotation(name) if x not in RISK_TAG_SET and x != "Unkategorisiert"]
+    return t if t else ["Unkategorisiert"]
+
 def score_rotation(name: str, profile: str) -> int:
     tags = tags_for_rotation(name)
     wanted = set(PROFILE_WANTED_TAGS.get(profile, []))
 
     if profile == "Ausgewogen (Standard)":
+        # nur leicht negativ, sonst neutral (Diversifikation übernimmt die Auswahl)
         if "High Volatility" in tags or "Early/Speculative" in tags:
             return -1
         return 0
@@ -367,7 +468,10 @@ def pick_rotation_by_profile(
     strength: str,
     repeatable: bool,
     do_shuffle: bool,
-    desired_pool_size: int | None = None
+    desired_pool_size: int | None = None,
+    # ✅ Ausgewogen: Diversifikation + Risk-Cap
+    balanced_risk_cap_pct: float = 0.25,    # z.B. 25% Risk max
+    balanced_min_per_tag: int = 1,          # mind. 1 pro Tag, wenn möglich
 ) -> list[str]:
     if not rot_list:
         return []
@@ -375,6 +479,118 @@ def pick_rotation_by_profile(
     seed = profile_seed(profile) if repeatable else None
     random.seed(seed)
 
+    # --------
+    # ✅ AUSGEWOGEN: Diversified picking statt "Score = 0 für alle"
+    # --------
+    if profile == "Ausgewogen (Standard)":
+        pool = rot_list[:]
+        if do_shuffle:
+            random.shuffle(pool)
+
+        target = int(desired_pool_size) if desired_pool_size else len(pool)
+        target = max(0, min(target, len(pool)))
+        if target == 0:
+            return []
+
+        risk_cap = int(round(target * float(balanced_risk_cap_pct)))
+        # mindestens 1 Risk erlauben, wenn target groß genug
+        if target >= 8 and risk_cap < 1:
+            risk_cap = 1
+
+        tag_to_candidates = defaultdict(list)
+        for s in pool:
+            for tg in thematic_tags(s):
+                tag_to_candidates[tg].append(s)
+
+        # stabile Reihenfolge in jedem Tag-Bucket
+        for tg in list(tag_to_candidates.keys()):
+            cand = tag_to_candidates[tg]
+            if do_shuffle:
+                random.shuffle(cand)
+            tag_to_candidates[tg] = cand
+
+        picked = []
+        picked_set = set()
+        picked_risk = 0
+
+        tags = list(tag_to_candidates.keys())
+        # optional: tags shufflen, damit nicht immer gleiche Reihenfolge
+        if do_shuffle:
+            random.shuffle(tags)
+
+        def can_add(sym: str) -> bool:
+            nonlocal picked_risk
+            if sym in picked_set:
+                return False
+            if is_risky(sym) and picked_risk >= risk_cap:
+                return False
+            return True
+
+        def add(sym: str):
+            nonlocal picked_risk
+            picked.append(sym)
+            picked_set.add(sym)
+            if is_risky(sym):
+                picked_risk += 1
+
+        # Pass 1: mind. balanced_min_per_tag je Tag (wenn möglich)
+        for _ in range(balanced_min_per_tag):
+            if len(picked) >= target:
+                break
+            for tg in tags:
+                if len(picked) >= target:
+                    break
+                # pop solange bis passt
+                while tag_to_candidates[tg]:
+                    sym = tag_to_candidates[tg].pop(0)
+                    if can_add(sym):
+                        add(sym)
+                        break
+
+        # Pass 2: Round-robin weiter auffüllen über Tags
+        if len(picked) < target:
+            made_progress = True
+            while len(picked) < target and made_progress:
+                made_progress = False
+                for tg in tags:
+                    if len(picked) >= target:
+                        break
+                    while tag_to_candidates[tg]:
+                        sym = tag_to_candidates[tg].pop(0)
+                        if can_add(sym):
+                            add(sym)
+                            made_progress = True
+                            break
+
+        # Pass 3: Rest auffüllen (erst non-risk, dann risk falls nötig)
+        if len(picked) < target:
+            remaining = [s for s in pool if s not in picked_set]
+            non_risk = [s for s in remaining if not is_risky(s)]
+            risk = [s for s in remaining if is_risky(s)]
+            if do_shuffle:
+                random.shuffle(non_risk)
+                random.shuffle(risk)
+
+            for s in non_risk:
+                if len(picked) >= target:
+                    break
+                if can_add(s):
+                    add(s)
+
+            # falls non-risk nicht reicht: risk "über cap" zulassen, aber erst ganz am Ende
+            if len(picked) < target:
+                for s in risk:
+                    if len(picked) >= target:
+                        break
+                    if s in picked_set:
+                        continue
+                    add(s)  # bewusst ohne cap-check (sonst bleibt Pool ggf. zu klein)
+
+        return picked[:target]
+
+    # --------
+    # Andere Profile: Scoring-Mechanik wie gehabt
+    # --------
     scored = []
     for s in rot_list:
         sc = score_rotation(s, profile)
@@ -382,10 +598,6 @@ def pick_rotation_by_profile(
         scored.append((sc, tie, s))
 
     scored.sort(key=lambda t: (-t[0], t[1]))
-
-    if profile == "Ausgewogen (Standard)":
-        ordered = [t[2] for t in scored] if do_shuffle else rot_list[:]
-        return ordered[:desired_pool_size] if desired_pool_size else ordered
 
     positives = [t for t in scored if t[0] > 0]
     rest = [t for t in scored if t[0] <= 0]
@@ -501,7 +713,7 @@ with st.form("inputs_form", clear_on_submit=False):
 
     favs_pro_monat = st.slider("Wie viele Favoriten pro Monat besparen?", 1, 3, 2, key="favs_pro_monat")
 
-    # ✅ Auto-Modus entfernt -> Multiplikator immer sichtbar
+    # ✅ Multiplikator immer sichtbar
     fav_multiplier = st.slider(
         "Favoriten stärker besparen als Rotation (pro Aktie, Multiplikator)",
         min_value=1.0, max_value=3.0, value=1.5, step=0.1, key="fav_multiplier"
@@ -560,20 +772,38 @@ def compute_plan(
     if len(fav_list) > max_aktien_int:
         fav_list = fav_list[:max_aktien_int]
         rot_list = []
-        info_limits.append(f"Aktien-Limit: Favoriten > Max. Aktien → Favoriten auf {max_aktien_int} gekürzt, Rotation deaktiviert.")
+        info_limits.append(
+            f"Aktien-Limit: Favoriten > Max. Aktien → Favoriten auf {max_aktien_int} gekürzt, Rotation deaktiviert."
+        )
     else:
         rot_slots = max_aktien_int - len(fav_list)
+
+        # ✅ Ausgewogen: Diversifikation + Risk-Cap (Default Mix & Risk gedeckelt)
         rot_list_picked = pick_rotation_by_profile(
             rot_list_all,
             profile=profil,
             strength=profil_staerke,
             repeatable=auswahl_wiederholbar,
             do_shuffle=shuffle_rotation,
-            desired_pool_size=rot_slots
+            desired_pool_size=rot_slots,
+            balanced_risk_cap_pct=0.25,   # ✅ gedeckelt
+            balanced_min_per_tag=1
         )
         rot_list = rot_list_picked[:rot_slots]
+
         if len(rot_list_all) > len(rot_list):
-            info_limits.append(f"Aktien-Limit aktiv: Rotation wurde profil-basiert auf **{rot_slots}** Aktien gepickt (Max Aktien {max_aktien_int}).")
+            info_limits.append(
+                f"Aktien-Limit aktiv: Rotation wurde profil-basiert auf **{rot_slots}** Aktien gepickt (Max Aktien {max_aktien_int})."
+            )
+
+        # ✅ Hinweis zu Ausgewogen-Logik + tatsächlicher Risk-Anteil
+        if profil == "Ausgewogen (Standard)" and rot_list:
+            risk_cnt = sum(1 for s in rot_list if is_risky(s))
+            risk_pct = (risk_cnt / len(rot_list) * 100) if rot_list else 0.0
+            info_adjustments.append(
+                f"Ausgewogen: Diversifikation aktiv (1× je Tag soweit möglich) • Risk gedeckelt (~25%) • "
+                f"im Pool: **{risk_cnt}/{len(rot_list)}** riskige Werte (**{risk_pct:.0f}%**)."
+            )
 
     # ETF-Raten
     raw_weights = {etf: etf_weight_for(etf) for etf in etf_list}
@@ -636,14 +866,14 @@ def compute_plan(
             fav_rate_per_fav = aktien_budget / fav_count
             info_adjustments.append("Rotation fiel auf 0 → gesamtes Aktienbudget geht in Favoriten.")
 
-    # Rotation Pool Reihenfolge: Ausgewogen optional shuffle
+    # Rotation Pool Reihenfolge: Ausgewogen optional shuffle (nur Reihenfolge)
     rot_list_effective = rot_list[:]
     if profil == "Ausgewogen (Standard)" and shuffle_rotation and len(rot_list_effective) > 1:
         seed = profile_seed(profil) if auswahl_wiederholbar else None
         random.seed(seed)
         random.shuffle(rot_list_effective)
 
-    # Trefferquote
+    # Trefferquote (für non-Ausgewogen wirklich relevant, bei Ausgewogen eher "neutral")
     if rot_list_effective:
         scored_ui = [(score_rotation(s, profil), s) for s in rot_list_effective]
         hits = sum(1 for sc, _ in scored_ui if sc > 0)
@@ -744,7 +974,7 @@ if submitted:
             auswahl_wiederholbar=st.session_state.auswahl_wiederholbar,
             shuffle_rotation=st.session_state.shuffle_rotation,
             favs_pro_monat=st.session_state.favs_pro_monat,
-            fav_multiplier=st.session_state.fav_multiplier,  # ✅ immer der Slider-Wert
+            fav_multiplier=st.session_state.fav_multiplier,  # ✅ immer Slider-Wert
             min_rate_rotation=st.session_state.min_rate_rotation,
             top_n_chart=st.session_state.top_n_chart,
             show_tag_table=st.session_state.get("show_tag_table", False),
@@ -790,7 +1020,10 @@ if res is not None:
         st.dataframe(pd.DataFrame(rows), use_container_width=True)
 
     if res["rot_list_effective"]:
-        top5 = sorted([(score_rotation(s, res["profil"]), s) for s in res["rot_list_effective"]], key=lambda t: t[0], reverse=True)[:5]
+        top5 = sorted(
+            [(score_rotation(s, res["profil"]), s) for s in res["rot_list_effective"]],
+            key=lambda t: t[0], reverse=True
+        )[:5]
         with st.expander("🔍 Profil-Details (Top 5 Picks)", expanded=False):
             show_reason = st.checkbox("Kurzbegründung anzeigen", value=True, key="show_reason_top5")
             for i, (sc, name) in enumerate(top5, start=1):
