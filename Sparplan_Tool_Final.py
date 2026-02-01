@@ -151,7 +151,6 @@ Schaeffler
 ServiceNow
 Shopify (A)
 Siemens
-SK Hynix (GDR)
 SK Hynix
 Snowflake (A)
 Spotify Technology
