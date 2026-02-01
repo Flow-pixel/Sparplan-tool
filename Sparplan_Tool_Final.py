@@ -17,6 +17,13 @@ if "last_info_limits" not in st.session_state:
 if "last_info_adjustments" not in st.session_state:
     st.session_state.last_info_adjustments = []
 
+# ✅ Compute Trigger: garantiert NUR per Button-Klick
+if "_do_compute" not in st.session_state:
+    st.session_state._do_compute = False
+
+def request_compute():
+    st.session_state._do_compute = True
+
 # -----------------------------
 # Logo und Branding
 # -----------------------------
@@ -492,7 +499,6 @@ def pick_rotation_by_profile(
             return []
 
         risk_cap = int(round(target * float(balanced_risk_cap_pct)))
-        # mindestens 1 Risk erlauben, wenn target groß genug
         if target >= 8 and risk_cap < 1:
             risk_cap = 1
 
@@ -501,7 +507,6 @@ def pick_rotation_by_profile(
             for tg in thematic_tags(s):
                 tag_to_candidates[tg].append(s)
 
-        # stabile Reihenfolge in jedem Tag-Bucket
         for tg in list(tag_to_candidates.keys()):
             cand = tag_to_candidates[tg]
             if do_shuffle:
@@ -513,7 +518,6 @@ def pick_rotation_by_profile(
         picked_risk = 0
 
         tags = list(tag_to_candidates.keys())
-        # optional: tags shufflen, damit nicht immer gleiche Reihenfolge
         if do_shuffle:
             random.shuffle(tags)
 
@@ -532,21 +536,18 @@ def pick_rotation_by_profile(
             if is_risky(sym):
                 picked_risk += 1
 
-        # Pass 1: mind. balanced_min_per_tag je Tag (wenn möglich)
         for _ in range(balanced_min_per_tag):
             if len(picked) >= target:
                 break
             for tg in tags:
                 if len(picked) >= target:
                     break
-                # pop solange bis passt
                 while tag_to_candidates[tg]:
                     sym = tag_to_candidates[tg].pop(0)
                     if can_add(sym):
                         add(sym)
                         break
 
-        # Pass 2: Round-robin weiter auffüllen über Tags
         if len(picked) < target:
             made_progress = True
             while len(picked) < target and made_progress:
@@ -561,7 +562,6 @@ def pick_rotation_by_profile(
                             made_progress = True
                             break
 
-        # Pass 3: Rest auffüllen (erst non-risk, dann risk falls nötig)
         if len(picked) < target:
             remaining = [s for s in pool if s not in picked_set]
             non_risk = [s for s in remaining if not is_risky(s)]
@@ -576,14 +576,13 @@ def pick_rotation_by_profile(
                 if can_add(s):
                     add(s)
 
-            # falls non-risk nicht reicht: risk "über cap" zulassen, aber erst ganz am Ende
             if len(picked) < target:
                 for s in risk:
                     if len(picked) >= target:
                         break
                     if s in picked_set:
                         continue
-                    add(s)  # bewusst ohne cap-check (sonst bleibt Pool ggf. zu klein)
+                    add(s)
 
         return picked[:target]
 
@@ -707,12 +706,12 @@ with st.form("inputs_form", clear_on_submit=False):
         )
         show_tag_table = st.checkbox("Rotation-Kategorisierung anzeigen (Tabelle)", value=False, key="show_tag_table")
         st.caption("Mild = wenig Filter • Strong = harter Filter (Fallback wenn zu wenige Treffer)")
+
     profil_staerke = st.session_state.get("profil_staerke", "Strong")
     show_tag_table = st.session_state.get("show_tag_table", False)
 
     favs_pro_monat = st.slider("Wie viele Favoriten pro Monat besparen?", 1, 3, 2, key="favs_pro_monat")
 
-    # ✅ Multiplikator immer sichtbar
     fav_multiplier = st.slider(
         "Favoriten stärker besparen als Rotation (pro Aktie, Multiplikator)",
         min_value=1.0, max_value=3.0, value=1.5, step=0.1, key="fav_multiplier"
@@ -725,10 +724,12 @@ with st.form("inputs_form", clear_on_submit=False):
     )
 
     top_n_chart = st.slider("Diagramm: Anzahl angezeigter Positionen", 10, 120, 40, key="top_n_chart")
-    submitted = st.form_submit_button("Sparplan berechnen")
+
+    # ✅ NUR per Klick triggern (kein submitted-Flag nötig)
+    st.form_submit_button("Sparplan berechnen", on_click=request_compute)
 
 # -----------------------------
-# Compute (only when submitted) -> store in session_state
+# Compute (only when triggered) -> store in session_state
 # -----------------------------
 def compute_plan(
     zielsumme, monate, aktienanteil, anzahl_aktien_pro_monat,
@@ -777,7 +778,6 @@ def compute_plan(
     else:
         rot_slots = max_aktien_int - len(fav_list)
 
-        # ✅ Ausgewogen: Diversifikation + Risk-Cap (Default Mix & Risk gedeckelt)
         rot_list_picked = pick_rotation_by_profile(
             rot_list_all,
             profile=profil,
@@ -785,7 +785,7 @@ def compute_plan(
             repeatable=auswahl_wiederholbar,
             do_shuffle=shuffle_rotation,
             desired_pool_size=rot_slots,
-            balanced_risk_cap_pct=0.25,   # ✅ gedeckelt
+            balanced_risk_cap_pct=0.25,
             balanced_min_per_tag=1
         )
         rot_list = rot_list_picked[:rot_slots]
@@ -795,7 +795,6 @@ def compute_plan(
                 f"Aktien-Limit aktiv: Rotation wurde profil-basiert auf **{rot_slots}** Aktien gepickt (Max Aktien {max_aktien_int})."
             )
 
-        # ✅ Hinweis zu Ausgewogen-Logik + tatsächlicher Risk-Anteil
         if profil == "Ausgewogen (Standard)" and rot_list:
             risk_cnt = sum(1 for s in rot_list if is_risky(s))
             risk_pct = (risk_cnt / len(rot_list) * 100) if rot_list else 0.0
@@ -872,7 +871,7 @@ def compute_plan(
         random.seed(seed)
         random.shuffle(rot_list_effective)
 
-    # Trefferquote (für non-Ausgewogen wirklich relevant, bei Ausgewogen eher "neutral")
+    # Trefferquote
     if rot_list_effective:
         scored_ui = [(score_rotation(s, profil), s) for s in rot_list_effective]
         hits = sum(1 for sc, _ in scored_ui if sc > 0)
@@ -955,29 +954,32 @@ def compute_plan(
         "fav_multiplier": float(fav_multiplier),
     }
 
-if submitted:
+# ✅ NUR wenn Button gedrückt wurde, wird compute ausgeführt
+if st.session_state._do_compute:
+    st.session_state._do_compute = False
     try:
-        res = compute_plan(
-            zielsumme=st.session_state.zielsumme,
-            monate=st.session_state.monate,
-            aktienanteil=st.session_state.aktienanteil,
-            anzahl_aktien_pro_monat=st.session_state.anzahl_aktien_pro_monat,
-            favoriten_text=st.session_state.favoriten,
-            rotation_text=st.session_state.rotation_aktien,
-            etfs_text=st.session_state.etfs,
-            max_aktien=st.session_state.max_aktien,
-            max_etfs=st.session_state.max_etfs,
-            begrenze_rotation=st.session_state.begrenze_rotation,
-            profil=st.session_state.profil,
-            profil_staerke=st.session_state.get("profil_staerke", "Strong"),
-            auswahl_wiederholbar=st.session_state.auswahl_wiederholbar,
-            shuffle_rotation=st.session_state.shuffle_rotation,
-            favs_pro_monat=st.session_state.favs_pro_monat,
-            fav_multiplier=st.session_state.fav_multiplier,  # ✅ immer Slider-Wert
-            min_rate_rotation=st.session_state.min_rate_rotation,
-            top_n_chart=st.session_state.top_n_chart,
-            show_tag_table=st.session_state.get("show_tag_table", False),
-        )
+        with st.spinner("Berechne Sparplan..."):
+            res = compute_plan(
+                zielsumme=st.session_state.zielsumme,
+                monate=st.session_state.monate,
+                aktienanteil=st.session_state.aktienanteil,
+                anzahl_aktien_pro_monat=st.session_state.anzahl_aktien_pro_monat,
+                favoriten_text=st.session_state.favoriten,
+                rotation_text=st.session_state.rotation_aktien,
+                etfs_text=st.session_state.etfs,
+                max_aktien=st.session_state.max_aktien,
+                max_etfs=st.session_state.max_etfs,
+                begrenze_rotation=st.session_state.begrenze_rotation,
+                profil=st.session_state.profil,
+                profil_staerke=st.session_state.get("profil_staerke", "Strong"),
+                auswahl_wiederholbar=st.session_state.auswahl_wiederholbar,
+                shuffle_rotation=st.session_state.shuffle_rotation,
+                favs_pro_monat=st.session_state.favs_pro_monat,
+                fav_multiplier=st.session_state.fav_multiplier,
+                min_rate_rotation=st.session_state.min_rate_rotation,
+                top_n_chart=st.session_state.top_n_chart,
+                show_tag_table=st.session_state.get("show_tag_table", False),
+            )
         st.session_state.result = res
         st.session_state.last_info_limits = res["info_limits"]
         st.session_state.last_info_adjustments = res["info_adjustments"]
@@ -1038,55 +1040,60 @@ if res is not None:
     csv = res["df_export"].to_csv(index=False).encode("utf-8")
     st.download_button("CSV herunterladen", data=csv, file_name="sparplan_gesamtuebersicht.csv", mime="text/csv")
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    farben = {"Favorit": "tab:green", "Rotation": "tab:orange", "ETF": "tab:blue"}
+    # ✅ Charts optional (Performance)
+    show_charts = st.checkbox("Charts anzeigen (Performance)", value=False, key="show_charts")
+    if show_charts:
+        fig, ax = plt.subplots(figsize=(10, 6))
+        farben = {"Favorit": "tab:green", "Rotation": "tab:orange", "ETF": "tab:blue"}
 
-    df_sorted = res["df_export"].sort_values(by="Gesamtbetrag (€)", ascending=False)
-    top_n_chart = int(res["top_n_chart"])
+        df_sorted = res["df_export"].sort_values(by="Gesamtbetrag (€)", ascending=False)
+        top_n_chart = int(res["top_n_chart"])
 
-    rest_sum = 0.0
-    if len(df_sorted) > top_n_chart:
-        df_plot = df_sorted.head(top_n_chart).copy()
-        rest_sum = df_sorted.iloc[top_n_chart:]["Gesamtbetrag (€)"].sum()
-    else:
-        df_plot = df_sorted
+        rest_sum = 0.0
+        if len(df_sorted) > top_n_chart:
+            df_plot = df_sorted.head(top_n_chart).copy()
+            rest_sum = df_sorted.iloc[top_n_chart:]["Gesamtbetrag (€)"].sum()
+        else:
+            df_plot = df_sorted
 
-    farben_liste = [farben.get(t, "gray") for t in df_plot["Typ"]]
-    ax.barh(df_plot["Name"], df_plot["Gesamtbetrag (€)"], color=farben_liste)
-    ax.set_xlabel("Gesamtbetrag (€)")
-    ax.set_title("Verteilung nach Sparplan")
-    ax.invert_yaxis()
+        farben_liste = [farben.get(t, "gray") for t in df_plot["Typ"]]
+        ax.barh(df_plot["Name"], df_plot["Gesamtbetrag (€)"], color=farben_liste)
+        ax.set_xlabel("Gesamtbetrag (€)")
+        ax.set_title("Verteilung nach Sparplan")
+        ax.invert_yaxis()
 
-    from matplotlib.patches import Patch
-    legende_farben = [
-        Patch(facecolor='tab:green', label='Favorit'),
-        Patch(facecolor='tab:orange', label='Rotation'),
-        Patch(facecolor='tab:blue', label='ETF')
-    ]
-    ax.legend(handles=legende_farben, loc='lower right')
-    ax.tick_params(axis='y', labelsize=8)
-    plt.tight_layout()
-    st.pyplot(fig)
+        from matplotlib.patches import Patch
+        legende_farben = [
+            Patch(facecolor='tab:green', label='Favorit'),
+            Patch(facecolor='tab:orange', label='Rotation'),
+            Patch(facecolor='tab:blue', label='ETF')
+        ]
+        ax.legend(handles=legende_farben, loc='lower right')
+        ax.tick_params(axis='y', labelsize=8)
+        plt.tight_layout()
+        st.pyplot(fig)
 
-    if rest_sum > 0:
-        st.caption(f"Others (Rest): {rest_sum:,.2f} €")
+        if rest_sum > 0:
+            st.caption(f"Others (Rest): {rest_sum:,.2f} €")
 
-    gruppe = res["df_export"].groupby("Typ")["Gesamtbetrag (€)"].sum()
-    fig1, ax1 = plt.subplots()
-    ax1.bar(gruppe.index, gruppe.values, color=[farben.get(t, "gray") for t in gruppe.index])
-    ax1.set_title("Verteilung nach Typ")
-    ax1.set_ylabel("Gesamtbetrag (€)")
-    st.pyplot(fig1)
+        gruppe = res["df_export"].groupby("Typ")["Gesamtbetrag (€)"].sum()
+        fig1, ax1 = plt.subplots()
+        ax1.bar(gruppe.index, gruppe.values, color=[farben.get(t, "gray") for t in gruppe.index])
+        ax1.set_title("Verteilung nach Typ")
+        ax1.set_ylabel("Gesamtbetrag (€)")
+        st.pyplot(fig1)
 
-    etf_df = res["df_export"][res["df_export"]["Typ"] == "ETF"]
-    if not etf_df.empty:
-        fig2, ax2 = plt.subplots()
-        ax2.pie(etf_df["Gesamtbetrag (€)"], labels=etf_df["Name"], autopct='%1.1f%%', startangle=140)
-        ax2.set_title("ETF-Allokation")
-        st.pyplot(fig2)
+        etf_df = res["df_export"][res["df_export"]["Typ"] == "ETF"]
+        if not etf_df.empty:
+            fig2, ax2 = plt.subplots()
+            ax2.pie(etf_df["Gesamtbetrag (€)"], labels=etf_df["Name"], autopct='%1.1f%%', startangle=140)
+            ax2.set_title("ETF-Allokation")
+            st.pyplot(fig2)
 
+    # ✅ Monatsansicht stark entschärft (Performance)
     st.subheader("Monatliche Raten")
-    show_all = st.checkbox("Alle Monate anzeigen (lang)", value=True, key="show_all_months")
+    show_all = st.checkbox("Alle Monate anzeigen (lang)", value=False, key="show_all_months")
+    MAX_MONTH_EXPANDERS = 36  # Schutz gegen Freeze
 
     def render_month(m_index: int):
         st.markdown(f"**Monat {m_index + 1} – Aktien**")
@@ -1100,9 +1107,17 @@ if res is not None:
             st.markdown(f"**{e}**: {res['etf_raten'].get(e, 0):.2f} €")
 
     if show_all:
-        for m in range(res["monate_int"]):
+        st.caption(f"Performance-Schutz: Es werden max. {MAX_MONTH_EXPANDERS} Monate als Expander gerendert.")
+        max_show = min(res["monate_int"], MAX_MONTH_EXPANDERS)
+        for m in range(max_show):
             with st.expander(f"Monat {m + 1} anzeigen", expanded=False):
                 render_month(m)
+
+        if res["monate_int"] > MAX_MONTH_EXPANDERS:
+            st.warning(
+                f"Nicht alle Monate gerendert ({MAX_MONTH_EXPANDERS}/{res['monate_int']}). "
+                "Nutze den Einzelmonat-Modus oder erhöhe MAX_MONTH_EXPANDERS."
+            )
     else:
         month_choice = st.selectbox(
             "Monat auswählen",
