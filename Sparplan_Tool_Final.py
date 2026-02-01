@@ -58,7 +58,6 @@ Alphabet
 NVIDIA
 Crowdstrike"""
 
-# ✅ Rotation-Pool ergänzt: ALLE neuen Aktien sind drin
 default_aktien = """Adyen
 Aker Carbon Capture
 Airbnb (A)
@@ -93,7 +92,6 @@ D-Wave Quantum
 Elbit Systems
 Eli Lilly & Co
 Endeavour Silver
-Evonik Industries
 Fortinet
 Galaxy Digital Inc. Reg. Shs. Cl…
 GE Aerospace
@@ -222,165 +220,78 @@ def profile_seed(profile: str) -> int:
     return mapping.get(profile, 420)
 
 # -----------------------------
-# Tagging: ALLE Rotation-Aktien bekommen Tags (inkl. neuer Werte + neue Tags)
+# Tagging
 # -----------------------------
 ALL_TAGS = {
-    # Tech / AI
     "Semis": [
         "ASML","TSMC","Micron","AMD","NVIDIA","Intel","Infineon Technologies","SK Hynix (GDR)","SK Hynix",
-        "KLA","Lam Research",
-        "Samsung","Qualcomm","Ibiden","Synopsys"
+        "KLA","Lam Research","Samsung","Qualcomm","Ibiden","Synopsys"
     ],
     "Software/Cloud": [
         "Microsoft","Oracle","SAP","ServiceNow","Snowflake (A)","Cloudflare (A)","Datadog (A)",
         "Meta Platforms (A)","Alphabet"
     ],
-    "Cyber": [
-        "Crowdstrike","Fortinet","Palo Alto Networks"
-    ],
-    "AI/Data": [
-        "Palantir","The Trade Desk (A)","Reddit"
-    ],
+    "Cyber": ["Crowdstrike","Fortinet","Palo Alto Networks"],
+    "AI/Data": ["Palantir","The Trade Desk (A)","Reddit"],
     "FinTech/Crypto": [
         "Coinbase","MicroStrategy (A)","Block","Circle Internet Group",
-        "Digindex","Diginex","BitMine Immersion Technology",
-        "Riot Platforms","Iren","Visa"
+        "Digindex","Diginex","BitMine Immersion Technology","Riot Platforms","Iren","Visa"
     ],
-    "Quantum": [
-        "D-Wave Quantum","Quantum eMotion"
-    ],
-    "Space": [
-        "AST SpaceMobile","Ondas Holdings","Rocket Lab Corp."
-    ],
-    "Robotics/Drone": [
-        "DroneShield","Axon Enterprise"
-    ],
-
-    # Consumer / Platform / Media
+    "Quantum": ["D-Wave Quantum","Quantum eMotion"],
+    "Space": ["AST SpaceMobile","Ondas Holdings","Rocket Lab Corp."],
+    "Robotics/Drone": ["DroneShield","Axon Enterprise"],
     "Platform/Consumer": [
         "Airbnb (A)","Netflix","Spotify Technology","Shopify (A)","MercadoLibre","Take-Two Interactive",
         "Alibaba Group (ADR)","Amazon.com","Apple","Tencent Holdings","Xiaomi","Reddit"
     ],
-    "Staples": [
-        "Procter & Gamble","Coca-Cola"
-    ],
-
-    # Auto
-    "EV/Auto": [
-        "Tesla","BYD","Nio","BMW","Mercedes-Benz Group"
-    ],
-
-    # Financials (neu)
-    "Financials": [
-        "Morgan Stanley","JP Morgan Chase","JPMorgan Chase","JPMorgan"
-    ],
-
-    # Value / Dividend / Quality
-    "Holding/Quality": [
-        "Berkshire Hathaway (B)","Brookfield Asset Management"
-    ],
-    "Telecom": [
-        "Deutsche Telekom"
-    ],
-    "Healthcare/Pharma": [
-        "Johnson & Johnson","Novo Nordisk (ADR)","Eli Lilly & Co","Intuitive Surgical","Illumina"
-    ],
-    "Biotech": [
-        "Intellia Therapeutics","Intellistake Technologies"
-    ],
-
-    # Industrials / Energy / Infrastructure
+    "Staples": ["Procter & Gamble","Coca-Cola"],
+    "EV/Auto": ["Tesla","BYD","Nio","BMW","Mercedes-Benz Group"],
+    "Financials": ["Morgan Stanley","JP Morgan Chase","JPMorgan Chase","JPMorgan"],
+    "Holding/Quality": ["Berkshire Hathaway (B)","Brookfield Asset Management"],
+    "Telecom": ["Deutsche Telekom"],
+    "Healthcare/Pharma": ["Johnson & Johnson","Novo Nordisk (ADR)","Eli Lilly & Co","Intuitive Surgical","Illumina"],
+    "Biotech": ["Intellia Therapeutics","Intellistake Technologies"],
     "Industrials": [
         "Siemens","Siemens Energy","Cummins","Schaeffler","ThyssenKrupp","TKMS AG & Co. KGaA Inhaber-…",
-        "Nordex","Constellation Energy","RENK Group","Renk",
-        "GEA","Prysmian"
+        "Nordex","Constellation Energy","RENK Group","Renk","GEA","Prysmian"
     ],
-
-    # Utilities / Energy (neu)
-    "Utilities/Energy": [
-        "Iberdrola"
-    ],
-
-    # Clean Energy (neu)
-    "Clean Energy": [
-        "Bloom Energy"
-    ],
-
-    # Materials / Mining
-    "Materials/Chemicals": [
-        "Heidelberg Materials","Covestro","Evonik Industries","Impala Platinum","Rio Tinto"
-    ],
-    "Mining/Metals": [
-        "Cameco","Critical Metals","MP Materials",
-        "Endeavour Silver","Hecla Mining","Newmont"
-    ],
-
-    # Uranium / Nuclear (neu)
-    "Uranium/Nuclear": [
-        "Cameco","Uranium Energy"
-    ],
-
-    # Defense / Aerospace
+    "Utilities/Energy": ["Iberdrola"],
+    "Clean Energy": ["Bloom Energy"],
+    "Materials/Chemicals": ["Heidelberg Materials","Covestro","Evonik Industries","Impala Platinum","Rio Tinto"],
+    "Mining/Metals": ["Cameco","Critical Metals","MP Materials","Endeavour Silver","Hecla Mining","Newmont"],
+    "Uranium/Nuclear": ["Cameco","Uranium Energy"],
     "Defense/Aerospace": [
-        "Rheinmetall","Saab (B)","Thales","Hensoldt",
-        "Elbit Systems","Leonardo-Finmeccanica","BAE Systems","Safran","Airbus",
-        "Rolls Royce","GE Aerospace",
-        "CSG Group / Czeschoslovak Group"
+        "Rheinmetall","Saab (B)","Thales","Hensoldt","Elbit Systems","Leonardo-Finmeccanica","BAE Systems",
+        "Safran","Airbus","Rolls Royce","GE Aerospace","CSG Group / Czeschoslovak Group"
     ],
-
-    # Real Estate
-    "REIT": [
-        "Realty Income"
-    ],
-
-    # ESG / Carbon
-    "Carbon/ESG": [
-        "Aker Carbon Capture"
-    ],
-
-    # Luxury
-    "Luxury": [
-        "LVMH Louis Vuitton Moet Hen…"
-    ],
-
-    # Fallback
-    "Other": [
-        "Adyen"
-    ],
+    "REIT": ["Realty Income"],
+    "Carbon/ESG": ["Aker Carbon Capture"],
+    "Luxury": ["LVMH Louis Vuitton Moet Hen…"],
+    "Other": ["Adyen"],
 }
 
 RISK_TAGS = {
-    "High Volatility": [
-        "Coinbase","MicroStrategy (A)","BitMine Immersion Technology","Digindex","Diginex","Nio",
-        "Riot Platforms","Iren"
-    ],
-    "Early/Speculative": [
-        "Quantum eMotion","D-Wave Quantum","Ondas Holdings","DroneShield","AST SpaceMobile",
-        "Bloom Energy","Uranium Energy"
-    ],
+    "High Volatility": ["Coinbase","MicroStrategy (A)","BitMine Immersion Technology","Digindex","Diginex","Nio","Riot Platforms","Iren"],
+    "Early/Speculative": ["Quantum eMotion","D-Wave Quantum","Ondas Holdings","DroneShield","AST SpaceMobile","Bloom Energy","Uranium Energy"],
 }
 
 PROFILE_WANTED_TAGS = {
-    "Ausgewogen (Standard)": [],  # ✅ wird über Diversifikation gepickt (siehe pick_rotation_by_profile)
-    "Tech & AI": [
-        "Semis", "Software/Cloud", "Cyber", "AI/Data", "Quantum", "Robotics/Drone", "FinTech/Crypto"
-    ],
-    "Wachstum": [
-        "Platform/Consumer", "EV/Auto", "Biotech", "Space", "FinTech/Crypto", "AI/Data", "Clean Energy"
-    ],
+    "Ausgewogen (Standard)": [],
+    "Tech & AI": ["Semis","Software/Cloud","Cyber","AI/Data","Quantum","Robotics/Drone","FinTech/Crypto"],
+    "Wachstum": ["Platform/Consumer","EV/Auto","Biotech","Space","FinTech/Crypto","AI/Data","Clean Energy"],
     "Dividenden & Value": [
-        "Holding/Quality", "Staples", "Telecom", "Healthcare/Pharma", "Industrials", "Materials/Chemicals",
-        "Mining/Metals", "Luxury", "REIT", "Financials", "Utilities/Energy", "Uranium/Nuclear", "Defense/Aerospace"
+        "Holding/Quality","Staples","Telecom","Healthcare/Pharma","Industrials","Materials/Chemicals",
+        "Mining/Metals","Luxury","REIT","Financials","Utilities/Energy","Uranium/Nuclear","Defense/Aerospace"
     ],
     "Konservativ & defensiv": [
-        "Holding/Quality", "Staples", "Telecom", "Healthcare/Pharma", "Industrials", "REIT",
-        "Materials/Chemicals", "Financials", "Utilities/Energy", "Defense/Aerospace"
+        "Holding/Quality","Staples","Telecom","Healthcare/Pharma","Industrials","REIT",
+        "Materials/Chemicals","Financials","Utilities/Energy","Defense/Aerospace"
     ],
 }
 
 def normalize_name(x: str) -> str:
     x = x.strip().lower()
-    x = x.replace("…", "...")  # normalize ellipsis if present
+    x = x.replace("…", "...")
     x = re.sub(r"\(a\)|\(b\)", "", x)
     x = x.replace("adr", "")
     x = re.sub(r"[^a-z0-9\s\.\-&/]", "", x)
@@ -419,18 +330,14 @@ def tags_for_rotation(name: str) -> list[str]:
                 risk |= tset
 
     tags |= risk
-
     if not tags:
         tags = {"Unkategorisiert"}
-
     return sorted(tags)
 
 def is_risky(name: str) -> bool:
-    t = set(tags_for_rotation(name))
-    return bool(t & RISK_TAG_SET)
+    return bool(set(tags_for_rotation(name)) & RISK_TAG_SET)
 
 def thematic_tags(name: str) -> list[str]:
-    """Tags ohne Risk-Overlays (für Diversifikation)"""
     t = [x for x in tags_for_rotation(name) if x not in RISK_TAG_SET and x != "Unkategorisiert"]
     return t if t else ["Unkategorisiert"]
 
@@ -439,7 +346,6 @@ def score_rotation(name: str, profile: str) -> int:
     wanted = set(PROFILE_WANTED_TAGS.get(profile, []))
 
     if profile == "Ausgewogen (Standard)":
-        # nur leicht negativ, sonst neutral (Diversifikation übernimmt die Auswahl)
         if "High Volatility" in tags or "Early/Speculative" in tags:
             return -1
         return 0
@@ -474,9 +380,8 @@ def pick_rotation_by_profile(
     repeatable: bool,
     do_shuffle: bool,
     desired_pool_size: int | None = None,
-    # ✅ Ausgewogen: Diversifikation + Risk-Cap
-    balanced_risk_cap_pct: float = 0.25,    # z.B. 25% Risk max
-    balanced_min_per_tag: int = 1,          # mind. 1 pro Tag, wenn möglich
+    balanced_risk_cap_pct: float = 0.25,
+    balanced_min_per_tag: int = 1,
 ) -> list[str]:
     if not rot_list:
         return []
@@ -484,9 +389,6 @@ def pick_rotation_by_profile(
     seed = profile_seed(profile) if repeatable else None
     random.seed(seed)
 
-    # --------
-    # ✅ AUSGEWOGEN: Diversified picking statt "Score = 0 für alle"
-    # --------
     if profile == "Ausgewogen (Standard)":
         pool = rot_list[:]
         if do_shuffle:
@@ -585,9 +487,6 @@ def pick_rotation_by_profile(
 
         return picked[:target]
 
-    # --------
-    # Andere Profile: Scoring-Mechanik wie gehabt
-    # --------
     scored = []
     for s in rot_list:
         sc = score_rotation(s, profile)
@@ -595,13 +494,12 @@ def pick_rotation_by_profile(
         scored.append((sc, tie, s))
 
     scored.sort(key=lambda t: (-t[0], t[1]))
-
     positives = [t for t in scored if t[0] > 0]
     rest = [t for t in scored if t[0] <= 0]
 
     if strength in ["Mild", "Normal"]:
         ordered = [t[2] for t in positives] + [t[2] for t in rest]
-    else:  # Strong
+    else:
         ordered_pos = [t[2] for t in positives]
         ordered_all = [t[2] for t in scored]
         if len(ordered_pos) >= max(5, int(0.3 * len(rot_list))):
@@ -609,9 +507,7 @@ def pick_rotation_by_profile(
         else:
             ordered = ordered_all
 
-    if desired_pool_size:
-        return ordered[:desired_pool_size]
-    return ordered
+    return ordered[:desired_pool_size] if desired_pool_size else ordered
 
 def render_two_col_grid(items: list[str]):
     if not items:
@@ -629,103 +525,103 @@ def render_two_col_grid(items: list[str]):
             st.markdown(f"- {it}")
 
 # -----------------------------
-# UI: Inputs in a form
+# ✅ UI: Inputs (OHNE form) -> live update
 # -----------------------------
-with st.form("inputs_form", clear_on_submit=False):
-    st.subheader("Eingaben")
+st.subheader("Eingaben")
 
-    zielsumme = st.number_input("Zielsumme (€)", value=50000, key="zielsumme")
-    monate = st.number_input("Dauer (Monate)", value=100, key="monate")
-    aktienanteil = st.slider("Aktienanteil (%)", 0, 100, 65, key="aktienanteil")
-    etf_anteil = 100 - aktienanteil
+zielsumme = st.number_input("Zielsumme (€)", value=50000, key="zielsumme")
+monate = st.number_input("Dauer (Monate)", value=100, key="monate")
+aktienanteil = st.slider("Aktienanteil (%)", 0, 100, 65, key="aktienanteil")
+etf_anteil = 100 - int(aktienanteil)
 
-    monatlicher_betrag_preview = zielsumme / monate if monate else 0
-    st.markdown(f"**ETFs erhalten {etf_anteil} %, Aktien erhalten {aktienanteil} %**")
-    st.markdown(f"### Monatlicher Sparbetrag: {monatlicher_betrag_preview:.2f} €")
+# ✅ Live-Preview immer aktuell
+monatlicher_betrag_preview = (zielsumme / monate) if monate else 0
+st.markdown(f"**ETFs erhalten {etf_anteil} %, Aktien erhalten {aktienanteil} %**")
+st.markdown(f"### Monatlicher Sparbetrag: {monatlicher_betrag_preview:.2f} €")
 
-    anzahl_aktien_pro_monat = st.number_input(
-        "Wie viele Aktien pro Monat besparen?",
-        min_value=3, max_value=15, value=7, key="anzahl_aktien_pro_monat"
+anzahl_aktien_pro_monat = st.number_input(
+    "Wie viele Aktien pro Monat besparen?",
+    min_value=3, max_value=15, value=7, key="anzahl_aktien_pro_monat"
+)
+st.caption("Favoriten werden pro Aktie stärker bespart als Rotation. Rotation-Aktien werden automatisch ergänzt.")
+
+favoriten = st.text_area("Favoritenaktien (eine pro Zeile)", value=default_favoriten, key="favoriten")
+st.caption("Falls keine Favoriten angegeben sind, wird das gesamte Aktienbudget auf rotierende Aktien verteilt.")
+
+rotation_aktien = st.text_area("Weitere Aktien (eine pro Zeile)", value=default_aktien, key="rotation_aktien")
+etfs = st.text_area("ETFs (eine pro Zeile)", value=default_etfs, key="etfs")
+st.caption("Falls keine ETFs angegeben sind, wird das gesamte Kapital auf Aktien verteilt.")
+
+st.subheader("⚙️ Erweiterte Einstellungen")
+
+max_aktien = st.number_input(
+    "Max. Aktien im Plan (inkl. Favoriten)",
+    min_value=5, max_value=200, value=40, step=1, key="max_aktien"
+)
+st.caption("Default: **40** (wie vorher im Einfach-Modus).")
+
+max_etfs = st.number_input(
+    "Max. ETFs im Plan",
+    min_value=1, max_value=50, value=10, step=1, key="max_etfs"
+)
+st.caption("Default: **10** (wie vorher im Einfach-Modus).")
+
+begrenze_rotation = st.checkbox(
+    "Rotation-Liste automatisch kürzen (nur so viele, wie im Zeitraum bespart werden können)",
+    value=True, key="begrenze_rotation"
+)
+
+profil = st.selectbox(
+    "Anlage-Profil (steuert Rotation-Auswahl)",
+    options=[
+        "Ausgewogen (Standard)",
+        "Tech & AI",
+        "Wachstum",
+        "Dividenden & Value",
+        "Konservativ & defensiv",
+    ],
+    index=0, key="profil"
+)
+
+auswahl_wiederholbar = st.checkbox(
+    "Auswahl wiederholbar (gleiches Profil + gleiche Inputs = gleiche Reihenfolge)",
+    value=True, key="auswahl_wiederholbar"
+)
+
+shuffle_rotation = st.checkbox(
+    "Rotation mischen (empfohlen – verhindert Alphabet-Reihenfolge)",
+    value=True, key="shuffle_rotation"
+)
+
+with st.expander("🔧 Optional (Advanced)", expanded=False):
+    profil_staerke = st.selectbox(
+        "Profil-Stärke (wie stark das Profil die Rotation beeinflusst)",
+        options=["Mild", "Normal", "Strong"],
+        index=2, key="profil_staerke"
     )
-    st.caption("Favoriten werden pro Aktie stärker bespart als Rotation. Rotation-Aktien werden automatisch ergänzt.")
+    show_tag_table = st.checkbox("Rotation-Kategorisierung anzeigen (Tabelle)", value=False, key="show_tag_table")
+    st.caption("Mild = wenig Filter • Strong = harter Filter (Fallback wenn zu wenige Treffer)")
 
-    favoriten = st.text_area("Favoritenaktien (eine pro Zeile)", value=default_favoriten, key="favoriten")
-    st.caption("Falls keine Favoriten angegeben sind, wird das gesamte Aktienbudget auf rotierende Aktien verteilt.")
+profil_staerke = st.session_state.get("profil_staerke", "Strong")
+show_tag_table = st.session_state.get("show_tag_table", False)
 
-    rotation_aktien = st.text_area("Weitere Aktien (eine pro Zeile)", value=default_aktien, key="rotation_aktien")
-    etfs = st.text_area("ETFs (eine pro Zeile)", value=default_etfs, key="etfs")
-    st.caption("Falls keine ETFs angegeben sind, wird das gesamte Kapital auf Aktien verteilt.")
+favs_pro_monat = st.slider("Wie viele Favoriten pro Monat besparen?", 1, 3, 2, key="favs_pro_monat")
 
-    st.subheader("⚙️ Erweiterte Einstellungen")
+fav_multiplier = st.slider(
+    "Favoriten stärker besparen als Rotation (pro Aktie, Multiplikator)",
+    min_value=1.0, max_value=3.0, value=1.5, step=0.1, key="fav_multiplier"
+)
+st.caption("Default: **1.5x** (Empfehlung). Höher = Favoriten bekommen mehr Budget pro Monat.")
 
-    max_aktien = st.number_input(
-        "Max. Aktien im Plan (inkl. Favoriten)",
-        min_value=5, max_value=200, value=40, step=1, key="max_aktien"
-    )
-    st.caption("Default: **40** (wie vorher im Einfach-Modus).")
+min_rate_rotation = st.number_input(
+    "Mindestbetrag pro Rotation-Aktie (€/Monat) – falls nötig wird die Anzahl Rotation-Aktien pro Monat automatisch reduziert",
+    min_value=0.0, value=20.0, step=1.0, key="min_rate_rotation"
+)
 
-    max_etfs = st.number_input(
-        "Max. ETFs im Plan",
-        min_value=1, max_value=50, value=10, step=1, key="max_etfs"
-    )
-    st.caption("Default: **10** (wie vorher im Einfach-Modus).")
+top_n_chart = st.slider("Diagramm: Anzahl angezeigter Positionen", 10, 120, 40, key="top_n_chart")
 
-    begrenze_rotation = st.checkbox(
-        "Rotation-Liste automatisch kürzen (nur so viele, wie im Zeitraum bespart werden können)",
-        value=True, key="begrenze_rotation"
-    )
-
-    profil = st.selectbox(
-        "Anlage-Profil (steuert Rotation-Auswahl)",
-        options=[
-            "Ausgewogen (Standard)",
-            "Tech & AI",
-            "Wachstum",
-            "Dividenden & Value",
-            "Konservativ & defensiv",
-        ],
-        index=0, key="profil"
-    )
-
-    auswahl_wiederholbar = st.checkbox(
-        "Auswahl wiederholbar (gleiches Profil + gleiche Inputs = gleiche Reihenfolge)",
-        value=True, key="auswahl_wiederholbar"
-    )
-
-    shuffle_rotation = st.checkbox(
-        "Rotation mischen (empfohlen – verhindert Alphabet-Reihenfolge)",
-        value=True, key="shuffle_rotation"
-    )
-
-    with st.expander("🔧 Optional (Advanced)", expanded=False):
-        profil_staerke = st.selectbox(
-            "Profil-Stärke (wie stark das Profil die Rotation beeinflusst)",
-            options=["Mild", "Normal", "Strong"],
-            index=2, key="profil_staerke"
-        )
-        show_tag_table = st.checkbox("Rotation-Kategorisierung anzeigen (Tabelle)", value=False, key="show_tag_table")
-        st.caption("Mild = wenig Filter • Strong = harter Filter (Fallback wenn zu wenige Treffer)")
-
-    profil_staerke = st.session_state.get("profil_staerke", "Strong")
-    show_tag_table = st.session_state.get("show_tag_table", False)
-
-    favs_pro_monat = st.slider("Wie viele Favoriten pro Monat besparen?", 1, 3, 2, key="favs_pro_monat")
-
-    fav_multiplier = st.slider(
-        "Favoriten stärker besparen als Rotation (pro Aktie, Multiplikator)",
-        min_value=1.0, max_value=3.0, value=1.5, step=0.1, key="fav_multiplier"
-    )
-    st.caption("Default: **1.5x** (Empfehlung). Höher = Favoriten bekommen mehr Budget pro Monat.")
-
-    min_rate_rotation = st.number_input(
-        "Mindestbetrag pro Rotation-Aktie (€/Monat) – falls nötig wird die Anzahl Rotation-Aktien pro Monat automatisch reduziert",
-        min_value=0.0, value=20.0, step=1.0, key="min_rate_rotation"
-    )
-
-    top_n_chart = st.slider("Diagramm: Anzahl angezeigter Positionen", 10, 120, 40, key="top_n_chart")
-
-    # ✅ NUR per Klick triggern (kein submitted-Flag nötig)
-    st.form_submit_button("Sparplan berechnen", on_click=request_compute)
+# ✅ Compute Button (nur das triggert die Berechnung)
+st.button("Sparplan berechnen", on_click=request_compute)
 
 # -----------------------------
 # Compute (only when triggered) -> store in session_state
@@ -820,7 +716,6 @@ def compute_plan(
     rot_per_month_user = max(0, anzahl_aktien_pro_monat - favs_pro_monat_eff)
     if not rot_list:
         rot_per_month_user = 0
-
     rot_per_month_eff = rot_per_month_user
 
     # Multiplikatorverteilung
@@ -1039,7 +934,7 @@ if res is not None:
     csv = res["df_export"].to_csv(index=False).encode("utf-8")
     st.download_button("CSV herunterladen", data=csv, file_name="sparplan_gesamtuebersicht.csv", mime="text/csv")
 
-    # ✅ Charts optional (Performance)
+    # ✅ Charts optional (reduziert Hänger stark)
     show_charts = st.checkbox("Charts anzeigen (Performance)", value=False, key="show_charts")
     if show_charts:
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -1089,10 +984,11 @@ if res is not None:
             ax2.set_title("ETF-Allokation")
             st.pyplot(fig2)
 
-    # ✅ Monatsansicht stark entschärft (Performance)
+    # ✅ Monatsansicht: Default = Einzelmonat, All-Months limitiert
     st.subheader("Monatliche Raten")
     show_all = st.checkbox("Alle Monate anzeigen (lang)", value=False, key="show_all_months")
-    MAX_MONTH_EXPANDERS = 36  # Schutz gegen Freeze
+
+    MAX_MONTH_EXPANDERS = 36  # Schutz gegen Freeze/Hänger
 
     def render_month(m_index: int):
         st.markdown(f"**Monat {m_index + 1} – Aktien**")
