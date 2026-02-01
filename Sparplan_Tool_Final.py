@@ -132,7 +132,6 @@ Quantum eMotion
 Realty Income
 Reddit
 RENK Group
-Renk
 Rheinmetall
 Riot Platforms
 Rocket Lab Corp.
